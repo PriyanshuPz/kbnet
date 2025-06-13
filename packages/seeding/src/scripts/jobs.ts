@@ -1,0 +1,33 @@
+import MindsDB from "mindsdb-js-sdk";
+import { HACKERNEWS_STORY_FEED_QUERY } from "../lib/queries";
+import { PROJECT_NAME } from "./kb";
+
+const HACKERNEWS_SYNC_JOB = `${PROJECT_NAME}.hackernews_sync_job`;
+
+class Jobs {
+  async createHackernewsSyncJob() {
+    try {
+      await MindsDB.connect({
+        host: "http://localhost:47334",
+        user: "mindsdb",
+        password: "mindsdb",
+      });
+
+      const job = await MindsDB.SQL.runQuery(`
+        CREATE JOB IF NOT EXISTS ${HACKERNEWS_SYNC_JOB} AS (
+        ${HACKERNEWS_STORY_FEED_QUERY(10)}
+        )
+        EVERY 1 HOUR
+        `);
+
+      console.log("Hacker News sync job created successfully:", job.type);
+    } catch (error) {
+      console.error("Error creating Hacker News sync job:", error);
+      throw error;
+    }
+  }
+}
+
+export default new Jobs();
+
+export { HACKERNEWS_SYNC_JOB };
