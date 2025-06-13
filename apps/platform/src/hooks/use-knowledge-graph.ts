@@ -95,8 +95,8 @@ const mockKnowledgeResponse = (
     },
   }));
 
-  // return { nodes: [baseNode, ...nodes], edges };
-  return { nodes: [], edges: [] };
+  return { nodes: [baseNode, ...nodes], edges };
+  // return { nodes: [], edges: [] };
 };
 
 // Position nodes in a force-directed layout
@@ -146,7 +146,6 @@ export const useKnowledgeGraph = ({
       setIsLoading(true);
 
       try {
-        // In a real app, this would be an API call
         // const response = await api.fetchKnowledgeGraph(query);
 
         // Using mock data for demonstration

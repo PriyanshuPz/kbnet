@@ -1,0 +1,22 @@
+{
+  "name": "server",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.4",
+    "@hono/node-ws": "^1.1.7",
+    "@kbnet/shared": "*",
+    "dotenv": "^16.5.0",
+    "hono": "^4.7.11",
+    "mindsdb-js-sdk": "^2.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  }
+}

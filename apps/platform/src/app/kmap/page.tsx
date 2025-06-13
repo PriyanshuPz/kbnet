@@ -12,7 +12,6 @@ import ReactFlow, {
   MiniMap,
   NodeTypes,
   Node,
-  Edge,
   NodeChange,
   EdgeChange,
   NodeMouseHandler,
@@ -20,31 +19,16 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 
 import { KnowledgeNode } from "@/components/knowledge-map/knowledge-node";
-import { SearchBar } from "@/components/knowledge-map/search-bar";
 import { FilterControls } from "@/components/knowledge-map/filter-controls";
 import { NodeDetails } from "@/components/knowledge-map/node-details";
 import { BreadcrumbTrail } from "@/components/knowledge-map/breadcrumb-trail";
 import { LoadingState } from "@/components/knowledge-map/loading-state";
-import { EmptyState } from "@/components/knowledge-map/empty-state";
+import { EmptyState } from "@/components/core/empty-state";
 import { useKnowledgeGraph } from "@/hooks/use-knowledge-graph";
-
-// Define types for node data
-interface NodeData {
-  title: string;
-  content: string;
-  source: string;
-  sourceName: string;
-  relevance: string;
-  tags: string[];
-  publishedAt: string;
-  url: string;
-  relatedNodes: Array<{
-    id: string;
-    title: string;
-    source: string;
-    sourceName: string;
-  }>;
-}
+import { Waypoints } from "lucide-react";
+import { cn, secondaryFonts } from "@/lib/utils";
+import Brand from "@/components/core/brand";
+import Link from "next/link";
 
 interface Breadcrumb {
   nodeId: string;
@@ -144,18 +128,17 @@ export default function Home() {
 
   return (
     <div className="w-full h-screen flex flex-col bg-background text-foreground">
-      {/* Top Navigation Bar */}
-      <div className="flex items-center justify-between px-4 h-14 border-b border-border">
-        <div className="text-lg font-bold">KBNet</div>
-        <SearchBar onSearch={handleSearch} />
+      <div className="flex items-center px-4 h-14 mt-3">
+        <Link href="/" className="flex items-center gap-2">
+          <Brand />
+        </Link>
       </div>
 
-      {/* Main Content Area */}
       <div className="flex-1 relative">
         {isLoading ? (
           <LoadingState />
         ) : nodes.length === 0 ? (
-          <EmptyState onReset={() => fetchGraph("")} onSearch={handleSearch} />
+          <EmptyState onSearch={handleSearch} />
         ) : (
           <div ref={reactFlowWrapper} className="w-full h-full">
             <ReactFlow
@@ -169,31 +152,12 @@ export default function Home() {
               minZoom={0.2}
               maxZoom={4}
             >
-              {/* variant="dots" style={''} */}
               <Background color="#aaa" />
               <Controls
                 showInteractive={false}
                 className="bg-card text-foreground rounded-md"
               />
-              <MiniMap
-                nodeColor={(node: Node<NodeData>) => {
-                  switch (node.data.source) {
-                    case "hackerNews":
-                      return "var(--chart-1)";
-                    case "mediaWiki":
-                      return "var(--chart-2)";
-                    case "youtube":
-                      return "var(--chart-3)";
-                    case "webCrawler":
-                      return "var(--chart-4)";
-                    default:
-                      return "var(--chart-5)";
-                  }
-                }}
-                className="bg-card/50 rounded-md border border-border"
-              />
 
-              {/* Breadcrumb Trail */}
               <Panel position="top-center">
                 <BreadcrumbTrail
                   breadcrumbs={breadcrumbs}
@@ -201,7 +165,6 @@ export default function Home() {
                 />
               </Panel>
 
-              {/* Filter Controls */}
               <Panel position="top-left">
                 <FilterControls
                   filters={activeFilters}
@@ -212,7 +175,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Node Details Side Panel */}
         <NodeDetails
           node={selectedNode}
           open={isDetailOpen}

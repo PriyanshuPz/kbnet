@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Ubuntu } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { ThemeProvider } from "@/providers/theme";
+import { WSProvider } from "@/providers/ws";
+import { Toaster } from "@/components/ui/sonner";
 
 const fonts = Ubuntu({
   subsets: ["latin"],
@@ -19,8 +22,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={cn(fonts.className, "antialiased")}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={cn(fonts.className, "antialiased")}
+        suppressHydrationWarning
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <WSProvider>{children}</WSProvider>
+          <Toaster />
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
