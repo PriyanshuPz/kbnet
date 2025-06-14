@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "dotenv": "^16.5.0",
-    "mindsdb-js-sdk": "^2.3.2"
+    "mindsdb-js-sdk": "^2.3.2",
+    "@kbnet/shared": "*"
   }
 }

@@ -1,8 +1,7 @@
-import { DatasourceType, HACKERNEWS_DS } from "../scripts/datasources";
-import { KB_NAME } from "../scripts/kb";
+import { DatasourceType, MindsDBConfig } from "@kbnet/shared";
 
 export const HACKERNEWS_STORY_FEED_QUERY = (limit = 10) => `
-INSERT INTO ${KB_NAME} (id, content, metadata)
+INSERT INTO ${MindsDBConfig.KB_NAME} (id, content, metadata)
   SELECT
     CONCAT('${DatasourceType.HACKERNEWS}_', id) AS id,
     IFNULL(text, title) AS content,
@@ -13,6 +12,6 @@ INSERT INTO ${KB_NAME} (id, content, metadata)
         'source', '${DatasourceType.HACKERNEWS}',
         'tags', JSON_ARRAY('hackernews', 'news')
     ) AS metadata
-    FROM ${HACKERNEWS_DS}.showstories
+    FROM ${MindsDBConfig.HACKERNEWS_DS}.showstories
     LIMIT ${limit};
 `;

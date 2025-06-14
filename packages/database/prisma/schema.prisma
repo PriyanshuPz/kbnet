@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model KMap {
+  id        String         @id @default(cuid())
+  query     String
+  createdAt DateTime       @default(now())
+  nodes     KMapNode[]
+  edges     KMapEdge[]
+  timeline  KMapTimeline[]
+
+  @@map("k_maps")
+}
+
+model KMapNode {
+  id        String   @id @default(cuid())
+  kmapId    String
+  kmap      KMap     @relation(fields: [kmapId], references: [id])
+  label     String
+  content   String
+  source    String
+  isMain    Boolean  @default(false)
+  positionX Float    @default(0)
+  positionY Float    @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([kmapId], name: "idx_kmap_nodes_kmap_id") // Index for faster lookups by kmapId
+  @@map("k_map_nodes")
+}
+
+model KMapEdge {
+  id       String @id @default(cuid())
+  kmapId   String
+  kmap     KMap   @relation(fields: [kmapId], references: [id])
+  fromNode String
+  toNode   String
+  label    String
+
+  @@index([kmapId], name: "idx_kmap_edges_kmap_id") // Index for faster lookups by kmapId
+  @@map("k_map_edges")
+}
+
+model KMapTimeline {
+  id        String   @id @default(cuid())
+  kmapId    String
+  kmap      KMap     @relation(fields: [kmapId], references: [id])
+  nodeId    String
+  visitedAt DateTime @default(now())
+
+  @@map("k_map_timelines")
+}

@@ -16,6 +16,17 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "seed": {
+      "cache": false,
+      "persistent": true,
+      "env": [
+        "GEMINI_API_KEY",
+        "YOUTUBE_API_KEY",
+        "MINDS_HOST",
+        "MINDS_USERNAME",
+        "MINDS_PASSWORD"
+      ]
     }
   }
 }

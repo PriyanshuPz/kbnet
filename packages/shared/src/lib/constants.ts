@@ -29,6 +29,11 @@ export type MessagePayload = {
 
 const PROJECT_NAME = "kbnet";
 const KB_NAME = `${PROJECT_NAME}.kb`;
+const LLM_PROVIDER = "gemini";
+const LLM_MODEL = "gemini-2.0-flash";
+
+const ML_ENGINE_NAME = `${PROJECT_NAME}.google_ml_engine`;
+const HACKERNEWS_SYNC_JOB = `${PROJECT_NAME}.hackernews_sync_job`;
 
 export const MindsDBConfig = {
   HACKERNEWS_DS: "hackernews_ds",
@@ -37,4 +42,9 @@ export const MindsDBConfig = {
   YOUTUBE_DS: "youtube_ds",
   KB_NAME,
   PROJECT_NAME,
+  LLM_PROVIDER,
+  LLM_MODEL,
+  ML_ENGINE_NAME,
+  HACKERNEWS_SYNC_JOB,
+  APPDB_DS: "appdb_ds",
 };

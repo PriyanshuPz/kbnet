@@ -1,41 +1,31 @@
 import MindsDB from "mindsdb-js-sdk";
+import { MindsDBConfig } from "@kbnet/shared";
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
-enum DatasourceType {
-  HACKERNEWS = "hackernews",
-  MEDIAWIKI = "mediawiki",
-  WEB = "web",
-  YOUTUBE = "youtube",
-}
-
 type RsType = "table" | "error" | "ok";
 
-const HACKERNEWS_DS = "hackernews_ds";
-const MEDIAWIKI_DS = "mediawiki_ds";
-const WEB_DS = "web_ds";
-const YOUTUBE_DS = "youtube_ds";
+const HACKERNEWS_DS = MindsDBConfig.HACKERNEWS_DS;
+const MEDIAWIKI_DS = MindsDBConfig.MEDIAWIKI_DS;
+const WEB_DS = MindsDBConfig.WEB_DS;
+const YOUTUBE_DS = MindsDBConfig.YOUTUBE_DS;
+const APPDB_DS = MindsDBConfig.APPDB_DS;
 
 class MakeDatasource {
   async createDatasource(): Promise<void> {
     try {
-      // Connect to MindsDB instance
-      await MindsDB.connect({
-        host: "http://localhost:47334",
-        user: "mindsdb",
-        password: "mindsdb",
-      });
-      console.log("Connected to MindsDB instance");
       // Create datasources
       let _yt = await this.youtubeDS();
       let _hn = await this.hackernewsDS();
       let _mwiki = await this.mediawikiDS();
       let _web = await this.webDS();
+      let _appdb = await this.appDB();
       console.log("Datasources:", {
         youtube: _yt,
         hackernews: _hn,
         mediawiki: _mwiki,
         web: _web,
+        appdb: _appdb,
       });
     } catch (error) {
       console.error("Error creating datasource:", error);
@@ -108,7 +98,33 @@ class MakeDatasource {
       throw error;
     }
   }
+
+  async appDB(): Promise<RsType> {
+    try {
+      const config = {
+        host: process.env.DB_HOST || "db",
+        port: process.env.DB_PORT || 5432,
+        database: process.env.DB_NAME || "mindsdb",
+        user: process.env.DB_USER || "mindsdb",
+        password: process.env.DB_PASSWORD || "mindsdb",
+      };
+      const appDBDatasource = await MindsDB.SQL.runQuery(`
+        CREATE DATABASE IF NOT EXISTS ${APPDB_DS}
+          WITH ENGINE = 'postgres',
+          PARAMETERS = {
+            "host": "${config.host}",
+            "port": ${config.port},
+            "database": "${config.database}",
+            "user": "${config.user}",
+            "password": "${config.password}"
+        };
+        `);
+      return appDBDatasource.type;
+    } catch (error) {
+      console.error("Error creating App DB datasource:", error);
+      throw error;
+    }
+  }
 }
 
 export default new MakeDatasource();
-export { DatasourceType, HACKERNEWS_DS, MEDIAWIKI_DS, WEB_DS, YOUTUBE_DS };

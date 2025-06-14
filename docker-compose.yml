@@ -1,4 +1,14 @@
 services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: mindsdb
+      POSTGRES_PASSWORD: mindsdb
+      POSTGRES_DB: mindsdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
   mindsdb:
     image: mindsdb/mindsdb:latest
     ports:
@@ -6,6 +16,9 @@ services:
       - "47335:47335"
     volumes:
       - mindsdb_data:/root/mdb_storage
+    depends_on:
+      - db
 
 volumes:
   mindsdb_data:
+  db_data:
