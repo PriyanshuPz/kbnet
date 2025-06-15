@@ -1,41 +1,34 @@
-import { WS_SERVER_URL } from "@/lib/utils";
-import { wsHandler } from "@/lib/wsHandler";
 import { create } from "zustand";
 
-type Node = { id: string; label: string };
-type Edge = { id: string; source: string; target: string };
-
 interface WSState {
+  // WebSocket connection state
   socket: WebSocket | null;
-  nodes: Node[];
-  edges: Edge[];
+  setSocket: (socket: WebSocket | null) => void;
   connectionStatus: "connecting" | "connected" | "disconnected";
-  state: "loading" | "error" | "idle";
-  setState: (state: "loading" | "error" | "idle") => void;
-  error: string | null;
   setConnectionStatus: (
     status: "connecting" | "connected" | "disconnected"
   ) => void;
-  setError: (error: string | null) => void;
   send: (msg: any) => void;
-  setSocket: (socket: WebSocket | null) => void;
-  addNode: (node: Node) => void;
-  addEdge: (edge: Edge) => void;
+
+  // Global state for the application error handling
+  error: string | null;
+  setError: (error: string | null) => void;
+
+  // Global state for managing the application state
+  state: "loading" | "error" | "idle";
+  setState: (state: "loading" | "error" | "idle") => void;
+  kmapId: string | null;
+  setKmapId: (id: string | null) => void;
 }
 
 export const useGlobal = create<WSState>((set, get) => ({
+  // Initial state for WebSocket connection
   socket: null,
-  nodes: [],
-  edges: [],
-  connectionStatus: "connecting",
-  state: "idle",
-  setState: (state) => set({ state }),
-  error: null,
-  setConnectionStatus: (status) => set({ connectionStatus: status }),
-  setError: (error) => set({ error }),
   setSocket: (socket) => {
     set({ socket });
   },
+  connectionStatus: "connected",
+  setConnectionStatus: (status) => set({ connectionStatus: status }),
   send: (msg) => {
     const socket = get().socket;
     if (socket && socket.readyState === WebSocket.OPEN) {
@@ -46,6 +39,14 @@ export const useGlobal = create<WSState>((set, get) => ({
       });
     }
   },
-  addNode: (node) => set((state) => ({ nodes: [...state.nodes, node] })),
-  addEdge: (edge) => set((state) => ({ edges: [...state.edges, edge] })),
+
+  // Global state for error handling
+  error: null,
+  setError: (error) => set({ error }),
+
+  // Global state for kmapId
+  setState: (state) => set({ state }),
+  state: "idle",
+  kmapId: null,
+  setKmapId: (id) => set({ kmapId: id }),
 }));

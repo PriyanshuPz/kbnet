@@ -14,8 +14,9 @@ export async function wsHandler(
     switch (type) {
       case MessageType.PONG:
         console.log("Echo message received:", payload);
-      case MessageType.SEARCH_RESULT:
-        router.push("/kmap");
+      case MessageType.NEW_KMAP:
+        const kmap = payload.id;
+        router.push(`/kmap/${kmap}`);
         state.setState("idle"); // Reset state to idle after handling message
         console.log("Search result received:", payload);
         break;

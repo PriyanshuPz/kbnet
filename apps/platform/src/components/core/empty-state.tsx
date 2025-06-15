@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Network, Search, Sparkles, ArrowRight, Loader2 } from "lucide-react";
+import { Search, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,7 +13,7 @@ interface EmptyStateProps {
 const suggestedTopics = [
   "Artificial Intelligence",
   "Quantum Computing",
-  "Climate Science",
+  "Atom",
   "Space Exploration",
   "Neuroscience",
   "Blockchain",
@@ -100,7 +100,7 @@ export function EmptyState({ onSearch, loading }: EmptyStateProps) {
             </motion.h2>
           ) : (
             <motion.h2
-              className="text-2xl font-medium"
+              className="text-2xl font-medium -mb-4"
               key="explore"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

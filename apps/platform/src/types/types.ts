@@ -1,16 +1,24 @@
-interface NodeData {
-  title: string;
+interface KMapNode {
+  id: string;
+  kmapId: string;
+  label: string;
   content: string;
   source: string;
-  sourceName: string;
-  relevance: string;
-  tags: string[];
-  publishedAt: string;
-  url: string;
-  relatedNodes: Array<{
-    id: string;
-    title: string;
-    source: string;
-    sourceName: string;
-  }>;
+
+  deepNodeId?: string | null;
+  connectedNodeAId?: string | null;
+  connectedNodeBId?: string | null;
+
+  deepNode?: KMapNode | null;
+  connectedNodeA?: KMapNode;
+  connectedNodeB?: KMapNode;
+
+  depth: number;
+  createdAt: Date;
+}
+interface SwipeDirection {
+  up: boolean;
+  right: boolean;
+  left: boolean;
+  down: boolean;
 }

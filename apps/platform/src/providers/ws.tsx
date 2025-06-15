@@ -24,7 +24,7 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
     };
     ws.onerror = (err) => {
       state.setError("WebSocket error");
-      console.error("WebSocket error:", err);
+      // console.error("WebSocket error:", err);
     };
     ws.onmessage = async (e) => {
       await wsHandler(e, ws, state, router);

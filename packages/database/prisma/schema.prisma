@@ -9,50 +9,68 @@ datasource db {
 }
 
 model KMap {
-  id        String         @id @default(cuid())
+  id        String   @id @default(cuid())
   query     String
-  createdAt DateTime       @default(now())
-  nodes     KMapNode[]
-  edges     KMapEdge[]
-  timeline  KMapTimeline[]
+  createdAt DateTime @default(now())
+
+  focusedNodeId String? // Last focused node ID (can be null if not visited yet)
+
+  nodes    KMapNode[]
+  timeline UserTimeline[]
 
   @@map("k_maps")
 }
 
 model KMapNode {
-  id        String   @id @default(cuid())
-  kmapId    String
-  kmap      KMap     @relation(fields: [kmapId], references: [id])
-  label     String
-  content   String
-  source    String
-  isMain    Boolean  @default(false)
-  positionX Float    @default(0)
-  positionY Float    @default(0)
+  id      String @id @default(cuid())
+  kmapId  String
+  kmap    KMap   @relation(fields: [kmapId], references: [id])
+  label   String
+  content String
+  source  String
+
+  deepNodeId       String?
+  connectedNodeAId String?
+  connectedNodeBId String?
+
+  deepNode   KMapNode?  @relation("DeepNodeRelation", fields: [deepNodeId], references: [id])
+  deepNodeOf KMapNode[] @relation("DeepNodeRelation")
+
+  connectedNodeA   KMapNode?  @relation("ConnectedNodeARelation", fields: [connectedNodeAId], references: [id])
+  connectedNodeAOf KMapNode[] @relation("ConnectedNodeARelation")
+
+  connectedNodeB   KMapNode?  @relation("ConnectedNodeBRelation", fields: [connectedNodeBId], references: [id])
+  connectedNodeBOf KMapNode[] @relation("ConnectedNodeBRelation")
+
+  depth Int @default(0)
+
+  timelines UserTimeline[]
+
   createdAt DateTime @default(now())
 
-  @@index([kmapId], name: "idx_kmap_nodes_kmap_id") // Index for faster lookups by kmapId
   @@map("k_map_nodes")
 }
 
-model KMapEdge {
-  id       String @id @default(cuid())
-  kmapId   String
-  kmap     KMap   @relation(fields: [kmapId], references: [id])
-  fromNode String
-  toNode   String
-  label    String
+model UserTimeline {
+  id     String @id @default(cuid())
+  kmapId String
+  kmap   KMap   @relation(fields: [kmapId], references: [id])
 
-  @@index([kmapId], name: "idx_kmap_edges_kmap_id") // Index for faster lookups by kmapId
-  @@map("k_map_edges")
-}
+  userId String
+  nodeId String
+  node   KMapNode @relation(fields: [nodeId], references: [id])
 
-model KMapTimeline {
-  id        String   @id @default(cuid())
-  kmapId    String
-  kmap      KMap     @relation(fields: [kmapId], references: [id])
-  nodeId    String
-  visitedAt DateTime @default(now())
+  action    SwipeAction // "swipeLeft" | "swipeRight" | "swipeUp" | "swipeDown"
+  depth     Int // How deep the user was at this step
+  createdAt DateTime    @default(now())
 
   @@map("k_map_timelines")
+}
+
+enum SwipeAction {
+  swipeLeft
+  swipeRight
+  swipeUp
+  swipeDown
+  Tap
 }
