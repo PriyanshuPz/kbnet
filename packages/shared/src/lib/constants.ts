@@ -9,6 +9,15 @@ export enum MessageType {
   ERROR = "error",
   PING = "ping",
   PONG = "pong",
+  SESSION_CREATED = "session_created",
+  NODE_GENERATED = "node_generated",
+  NAVIGATION_COMPLETE = "navigation_complete",
+  SESSION_ERROR = "session_error",
+  NAVIGATE = "navigate",
+  RESUME_SESSION = "resume_session",
+  GET_VIEWPORT = "get_viewport",
+  GET_MINIMAP = "GET_MINIMAP",
+  MINIMAP_DATA = "MINIMAP_DATA",
 }
 
 export enum DatasourceType {

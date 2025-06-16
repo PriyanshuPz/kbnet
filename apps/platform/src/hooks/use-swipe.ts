@@ -1,23 +1,20 @@
 import { useState } from "react";
+import { useSwipeable } from "react-swipeable";
 
 interface SwipeGestureProps {
-  threshold: number;
-  onSwipeUp: () => void;
-  onSwipeDown: () => void;
-  onSwipeLeft: () => void;
-  onSwipeRight: () => void;
+  threshold?: number;
+  onSwipedDown: () => void;
+  onSwipedLeft: () => void;
+  onSwipedRight: () => void;
+  onSwipedUp: () => void;
 }
 
 export const useSwipeGestures = ({
-  threshold = 50,
-  onSwipeUp,
-  onSwipeDown,
-  onSwipeLeft,
-  onSwipeRight,
+  onSwipedDown,
+  onSwipedLeft,
+  onSwipedRight,
+  onSwipedUp,
 }: SwipeGestureProps) => {
-  const [startY, setStartY] = useState(0);
-  const [startX, setStartX] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [swipeDirection, setSwipeDirection] = useState<
     "up" | "down" | "left" | "right" | null
@@ -45,115 +42,61 @@ export const useSwipeGestures = ({
       }, 600);
     }, 100);
   };
-
-  // Handle touch start
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (isAnimating) return;
-    setStartY(e.touches[0].clientY);
-    setStartX(e.touches[0].clientX);
-    setIsDragging(true);
-  };
-
-  // Handle touch end
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (isAnimating || !isDragging) {
-      setIsDragging(false);
-      return;
-    }
-
-    const deltaY = startY - e.changedTouches[0].clientY;
-    const deltaX = startX - e.changedTouches[0].clientX;
-    const touchThreshold = threshold * 2; // Higher threshold for touch
-
-    // Determine swipe direction based on greater delta
-    if (Math.abs(deltaY) > Math.abs(deltaX)) {
-      // Vertical swipe
-      if (deltaY > touchThreshold) {
-        // Swipe up
-        animateTransition(onSwipeUp, "up");
-      } else if (deltaY < -touchThreshold) {
-        // Swipe down
-        animateTransition(onSwipeDown, "down");
+  const handlers = useSwipeable({
+    trackTouch: true,
+    trackMouse: true,
+    // onSwipedDown,
+    // onSwipedLeft,
+    // onSwipedRight,
+    // onSwipedUp,
+    onSwiping: (eventData) => {
+      if (isAnimating) return;
+      const { dir } = eventData;
+      switch (dir) {
+        case "Up":
+          setSwipeDirection("up");
+          break;
+        case "Down":
+          setSwipeDirection("down");
+          break;
+        case "Left":
+          setSwipeDirection("left");
+          break;
+        case "Right":
+          setSwipeDirection("right");
+          break;
+        default:
+          setSwipeDirection(null);
+          break;
       }
-    } else {
-      // Horizontal swipe
-      if (deltaX > touchThreshold) {
-        // Swipe left
-        animateTransition(onSwipeLeft, "left");
-      } else if (deltaX < -touchThreshold) {
-        // Swipe right
-        animateTransition(onSwipeRight, "right");
+    },
+    onSwiped: (eventData) => {
+      if (isAnimating) return;
+
+      const { dir } = eventData;
+      switch (dir) {
+        case "Up":
+          animateTransition(onSwipedUp, "up");
+          break;
+        case "Down":
+          animateTransition(onSwipedDown, "down");
+          break;
+        case "Left":
+          animateTransition(onSwipedLeft, "left");
+          break;
+        case "Right":
+          animateTransition(onSwipedRight, "right");
+          break;
+        default:
+          break;
       }
-    }
-
-    setIsDragging(false);
-  };
-
-  // Mouse events for desktop
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0 || isAnimating) return; // Only handle left mouse button
-    setStartY(e.clientY);
-    setStartX(e.clientX);
-    setIsDragging(true);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
-      // Prevent text selection during drag
-      e.preventDefault();
-    }
-  };
-
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (!isDragging || isAnimating) {
-      setIsDragging(false);
-      return;
-    }
-
-    const deltaY = startY - e.clientY;
-    const deltaX = startX - e.clientX;
-
-    if (Math.abs(deltaY) > Math.abs(deltaX)) {
-      if (deltaY > threshold) {
-        animateTransition(onSwipeUp, "up");
-      } else if (deltaY < -threshold) {
-        animateTransition(onSwipeDown, "down");
-      }
-    } else {
-      if (deltaX > threshold) {
-        animateTransition(onSwipeLeft, "left");
-      } else if (deltaX < -threshold) {
-        animateTransition(onSwipeRight, "right");
-      }
-    }
-
-    setIsDragging(false);
-  };
+    },
+    preventScrollOnSwipe: true,
+  });
 
   return {
-    handleTouchStart,
-    handleTouchEnd,
-    handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
     isAnimating,
-    isDragging,
     swipeDirection,
+    handlers,
   };
-};
-
-export const getContextualHint = (
-  node: KMapNode,
-  hasHistory: boolean
-): string | null => {
-  if (node.deepNode) {
-    return `⬆️ Swipe UP to explore ${node.deepNode.label}`;
-  }
-  if (node.connectedNodeA) {
-    return `➡️ Swipe RIGHT to discover ${node.connectedNodeA.label}`;
-  }
-  if (node.connectedNodeB) {
-    return `⬅️ Swipe LEFT for alternative: ${node.connectedNodeB.label}`;
-  }
-  return hasHistory ? "⬇️ Swipe DOWN to go back" : null;
 };

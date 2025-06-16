@@ -8,69 +8,106 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model KMap {
+model Session {
+  id           String   @id @default(cuid())
+  initialQuery String
+  startedAt    DateTime @default(now())
+  lastActiveAt DateTime @updatedAt
+  isActive     Boolean  @default(true)
+
+  // Current state
+  currentNodeId String?
+  currentDepth  Int     @default(0)
+  currentX      Int     @default(0)
+  currentY      Int     @default(0)
+
+  currentNode    Node?            @relation("CurrentNode", fields: [currentNodeId], references: [id])
+  nodes          Node[]           @relation("SessionNodes")
+  navigationPath NavigationStep[]
+
+  @@map("sessions")
+}
+
+model Node {
   id        String   @id @default(cuid())
-  query     String
+  title     String
+  summary   String?
+  content   String?
+  generated Boolean  @default(false)
+  depth     Int
+  x         Int
+  y         Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessionId String
+  session   Session @relation("SessionNodes", fields: [sessionId], references: [id], onDelete: Cascade)
+
+  // Tree structure for hierarchy
+  parentId String?
+  parent   Node?   @relation("NodeHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children Node[]  @relation("NodeHierarchy")
+
+  // Relations for exploration
+  currentSessions Session[]          @relation("CurrentNode")
+  navigationSteps NavigationStep[]
+  sourceRels      NodeRelationship[] @relation("SourceNode")
+  targetRels      NodeRelationship[] @relation("TargetNode")
+
+  @@unique([sessionId, depth, x, y])
+  @@index([sessionId, depth])
+  @@index([sessionId, x, y])
+  @@index([parentId])
+  @@map("nodes")
+}
+
+model NodeRelationship {
+  id   String           @id @default(cuid())
+  type RelationshipType
+
+  sourceNodeId String
+  targetNodeId String
+  sourceNode   Node   @relation("SourceNode", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  targetNode   Node   @relation("TargetNode", fields: [targetNodeId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
 
-  focusedNodeId String? // Last focused node ID (can be null if not visited yet)
-
-  nodes    KMapNode[]
-  timeline UserTimeline[]
-
-  @@map("k_maps")
+  @@unique([sourceNodeId, targetNodeId, type])
+  @@map("node_relationships")
 }
 
-model KMapNode {
-  id      String @id @default(cuid())
-  kmapId  String
-  kmap    KMap   @relation(fields: [kmapId], references: [id])
-  label   String
-  content String
-  source  String
+model NavigationStep {
+  id        String         @id @default(cuid())
+  sessionId String
+  nodeId    String
+  direction SwipeDirection
+  fromDepth Int
+  toDepth   Int
+  fromX     Int
+  fromY     Int
+  toX       Int
+  toY       Int
+  timestamp DateTime       @default(now())
+  stepIndex Int
 
-  deepNodeId       String?
-  connectedNodeAId String?
-  connectedNodeBId String?
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  node    Node    @relation(fields: [nodeId], references: [id], onDelete: Cascade)
 
-  deepNode   KMapNode?  @relation("DeepNodeRelation", fields: [deepNodeId], references: [id])
-  deepNodeOf KMapNode[] @relation("DeepNodeRelation")
-
-  connectedNodeA   KMapNode?  @relation("ConnectedNodeARelation", fields: [connectedNodeAId], references: [id])
-  connectedNodeAOf KMapNode[] @relation("ConnectedNodeARelation")
-
-  connectedNodeB   KMapNode?  @relation("ConnectedNodeBRelation", fields: [connectedNodeBId], references: [id])
-  connectedNodeBOf KMapNode[] @relation("ConnectedNodeBRelation")
-
-  depth Int @default(0)
-
-  timelines UserTimeline[]
-
-  createdAt DateTime @default(now())
-
-  @@map("k_map_nodes")
+  @@unique([sessionId, stepIndex])
+  @@index([sessionId, timestamp])
+  @@map("navigation_steps")
 }
 
-model UserTimeline {
-  id     String @id @default(cuid())
-  kmapId String
-  kmap   KMap   @relation(fields: [kmapId], references: [id])
-
-  userId String
-  nodeId String
-  node   KMapNode @relation(fields: [nodeId], references: [id])
-
-  action    SwipeAction // "swipeLeft" | "swipeRight" | "swipeUp" | "swipeDown"
-  depth     Int // How deep the user was at this step
-  createdAt DateTime    @default(now())
-
-  @@map("k_map_timelines")
+enum RelationshipType {
+  DEEP
+  ALTERNATIVE
+  RELATED
+  SIBLING
 }
 
-enum SwipeAction {
-  swipeLeft
-  swipeRight
-  swipeUp
-  swipeDown
-  Tap
+enum SwipeDirection {
+  UP // Go deeper
+  DOWN // Go back up
+  LEFT // Related topic
+  RIGHT // Alternative topic
 }
