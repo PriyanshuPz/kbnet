@@ -1,5 +1,5 @@
 import { useGlobal } from "@/store/global-state";
-import { MapBranchesResponse, MessageType, NewMapResult } from "@kbnet/shared";
+import { MessageType, NewMapResult } from "@kbnet/shared";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 export async function wsHandler(
@@ -38,9 +38,8 @@ export async function wsHandler(
       }
 
       case MessageType.MAP_BRANCHES: {
-        const branchData = payload as MapBranchesResponse;
-        state.setFlowData(branchData.flowData);
-        state.setFlowMetadata(branchData.metadata);
+        state.setBranches(payload.branches);
+        state.setCurrentBranchId(payload.currentBranchId);
         state.setState("idle");
         break;
       }

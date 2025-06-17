@@ -1,5 +1,4 @@
-import { NavigationStep, Node } from "@kbnet/db";
-import { Branch, FlowMetadata, TimelineNode } from "@kbnet/shared";
+import { Node } from "@kbnet/db";
 import { create } from "zustand";
 
 type MapState = {
@@ -9,19 +8,18 @@ type MapState = {
   currentStepIndex: number;
 };
 
-interface FlowData {
-  nodes: Array<{
+interface Branch {
+  id: string;
+  steps: {
     id: string;
-    data: {
-      title: string;
-      summary: string;
-      direction?: "LEFT" | "RIGHT" | "UP" | "INITIAL";
-      stepIndex: number;
-      branchId: string;
-      isCurrentStep: boolean;
-    };
-  }>;
-  edges: Array<any>;
+    nodeId: string;
+    title: string;
+    stepIndex: number;
+    direction: string;
+    parentStepId: string | null;
+  }[];
+  parentBranchId: string | null;
+  forkPoint: string | null;
 }
 
 type AppState =
@@ -74,32 +72,6 @@ interface WSState {
   // Helper for checking if a specific node direction is available
   hasNodeInDirection: (direction: "UP" | "LEFT" | "RIGHT") => boolean;
 
-  flowData: {
-    nodes: TimelineNode[];
-    edges: any[];
-  } | null;
-
-  flowMetadata: {
-    branches: Array<{
-      id: string;
-      isFork: boolean;
-      forkInfo?: {
-        fromBranchId: string;
-        atStepTitle: string;
-      };
-      nodeCount: number;
-    }>;
-    branchColors: Record<string, string>;
-    currentStepId: string | null;
-    currentBranchId: string | null;
-  } | null;
-  setFlowData: (data: any) => void;
-
-  setFlowMetadata: (metadata: any) => void;
-
-  // Reset flow state
-  resetFlowState: () => void;
-
   // Branches management
   branches: Branch[];
   currentBranchId: string | null;
@@ -116,8 +88,7 @@ export const useGlobal = create<WSState>((set, get) => ({
     set({ socket });
   },
   connectionStatus: "connecting",
-  setConnectionStatus: (status: ConnectionStatus) =>
-    set({ connectionStatus: status }),
+  setConnectionStatus: (status) => set({ connectionStatus: status }),
   send: (msg) => {
     const socket = get().socket;
     if (socket && socket.readyState === WebSocket.OPEN) {
@@ -199,8 +170,6 @@ export const useGlobal = create<WSState>((set, get) => ({
       similarNode: null,
       error: null,
       state: "idle",
-      flowData: null,
-      flowMetadata: null,
     });
   },
 
@@ -229,32 +198,21 @@ export const useGlobal = create<WSState>((set, get) => ({
     }
   },
 
-  // Flow state
-  flowData: null,
-  setFlowData: (data) => set({ flowData: data }),
-
-  flowMetadata: null,
-  setFlowMetadata: (metadata) => set({ flowMetadata: metadata }),
-
-  resetFlowState: () =>
-    set({
-      flowData: null,
-      flowMetadata: null,
-    }),
-
   // Branches management
   branches: [],
   currentBranchId: null,
+
+  navigateToBranch: (branchId, stepId) => {
+    // set({
+    //   currentBranchId: branchId,
+    //   map: {
+    //     ...get().map,
+    //     currentNavigationStepId: stepId,
+    //     currentPathBranchId: branchId,
+    //   },
+    // });
+  },
+
   setBranches: (branches) => set({ branches }),
   setCurrentBranchId: (branchId) => set({ currentBranchId: branchId }),
-  navigateToBranch: (branchId, stepId) => {
-    // Send message to server to navigate to this specific branch and step
-    // const socket = get().socket;
-    // if (socket && socket.readyState === WebSocket.OPEN) {
-    //   socket.send(JSON.stringify({
-    //     type: MessageType.NAVIGATE_TO_BRANCH_STEP,
-    //     payload: { branchId, stepId }
-    //   }));
-    // }
-  },
 }));

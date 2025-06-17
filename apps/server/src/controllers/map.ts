@@ -1,13 +1,7 @@
 import type { WSContext } from "hono/ws";
 import { initiateIngestion } from "./ingestion";
-import { connectMindsDB, runMindsDBQuery } from "../lib/mindsdb";
-import {
-  MessageType,
-  MindsDBConfig,
-  pack,
-  type FlowEdge,
-  type FlowNode,
-} from "@kbnet/shared";
+import { runMindsDBQuery } from "../lib/mindsdb";
+import { MessageType, MindsDBConfig, pack } from "@kbnet/shared";
 import { generateId, sanitizeSQLValue } from "../lib/util";
 import {
   DEEP_NODE_PROMPT,

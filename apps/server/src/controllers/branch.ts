@@ -7,6 +7,7 @@ interface BasePayload {
   userId: string;
   ws: WSContext<WebSocket>;
 }
+
 export async function getMapBranches({
   userId,
   data,
@@ -15,81 +16,72 @@ export async function getMapBranches({
   const { mapId } = data;
 
   try {
-    // Get only necessary fields
+    // Get all navigation steps for this map
     const steps = await prisma.navigationStep.findMany({
       where: { mapId },
-      select: {
-        id: true,
-        pathBranchId: true,
-        stepIndex: true,
-        nodeId: true,
-        parentStepId: true,
+      include: {
         node: {
           select: {
+            id: true,
             title: true,
+          },
+        },
+        parentStep: {
+          select: {
+            id: true,
+            pathBranchId: true,
           },
         },
       },
       orderBy: [{ pathBranchId: "asc" }, { stepIndex: "asc" }],
     });
 
-    const branchColors: Record<string, string> = {};
-    const uniqueBranches = [...new Set(steps.map((step) => step.pathBranchId))];
+    // Group steps by branch
+    const branchesByIdMap = new Map();
 
-    // Assign colors to branches
-    uniqueBranches.forEach((branchId, idx) => {
-      const hue = (idx * 137.5) % 360;
-      branchColors[branchId] = `hsl(${hue}, 70%, 50%)`;
-    });
-
-    // Process branches
-    const branchInfo = uniqueBranches.map((branchId) => {
-      const branchSteps = steps.filter((s) => s.pathBranchId === branchId);
-      const firstStep = branchSteps[0];
-
-      let forkInfo = null;
-      if (firstStep?.parentStepId) {
-        const parentStep = steps.find((s) => s.id === firstStep.parentStepId);
-        if (parentStep && parentStep.pathBranchId !== branchId) {
-          forkInfo = {
-            fromBranchId: parentStep.pathBranchId,
-            atStepTitle: parentStep.node.title,
-            atStepIndex: parentStep.stepIndex,
-          };
-        }
+    // First pass: collect all branches and their steps
+    steps.forEach((step) => {
+      if (!branchesByIdMap.has(step.pathBranchId)) {
+        branchesByIdMap.set(step.pathBranchId, {
+          id: step.pathBranchId,
+          steps: [],
+          parentBranchId: step.parentStep?.pathBranchId || null,
+          forkPoint: step.parentStepId || null,
+        });
       }
 
-      return {
-        id: branchId,
-        isFork: !!forkInfo,
-        forkInfo,
-      };
+      branchesByIdMap.get(step.pathBranchId).steps.push({
+        id: step.id,
+        nodeId: step.nodeId,
+        title: step.node.title,
+        stepIndex: step.stepIndex,
+        direction: step.direction,
+        parentStepId: step.parentStepId,
+      });
     });
 
-    // Get current step
+    // Convert Map to array for client consumption
+    const branches = Array.from(branchesByIdMap.values());
+
+    // Get current active branch and step
     const map = await prisma.map.findUnique({
       where: { id: mapId },
       select: { currentNavigationStepId: true },
     });
 
-    // Prepare minimal node data
-    const nodes = steps.map((step) => ({
-      id: step.id,
-      data: {
-        title: step.node.title,
-        stepIndex: step.stepIndex,
-        branchId: step.pathBranchId,
-      },
-    }));
+    // Find the current step and its branch
+    const currentStep = map?.currentNavigationStepId
+      ? await prisma.navigationStep.findUnique({
+          where: { id: map.currentNavigationStepId },
+          select: { pathBranchId: true, stepIndex: true },
+        })
+      : null;
 
     const result = {
       mapId,
-      flowData: { nodes },
-      metadata: {
-        branches: branchInfo,
-        branchColors,
-        currentStepId: map?.currentNavigationStepId,
-      },
+      branches,
+      currentBranchId: currentStep?.pathBranchId || null,
+      currentStepIndex: currentStep?.stepIndex || 0,
     };
 
     handler.sendToSession(mapId, MessageType.MAP_BRANCHES, result);
@@ -97,6 +89,7 @@ export async function getMapBranches({
     console.error("Error fetching map branches:", error);
     ws.send(
       pack(MessageType.ERROR, {
+        message: "Failed to fetch map branches",
         error: error instanceof Error ? error.message : "Unknown error",
       })
     );

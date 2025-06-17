@@ -1,7 +1,7 @@
 import Brand from "@/components/core/brand";
 import Link from "next/link";
 import ExplorationView from "../_components/exploration-view";
-import BranchTimeline from "../_components/branch-map";
+import { BranchMinimap } from "../_components/branch-map";
 
 export default async function ExplorePage({
   params,
@@ -17,7 +17,7 @@ export default async function ExplorePage({
           <Brand />
         </Link>
       </div>
-      <BranchTimeline />
+      <BranchMinimap />
       <ExplorationView id={id} />
     </div>
   );
