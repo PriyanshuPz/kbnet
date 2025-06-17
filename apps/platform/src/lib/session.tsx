@@ -9,37 +9,57 @@ export const sessionHelpers = {
     state.send(pack(MessageType.START_SEARCH, { query }));
   },
 
-  // Navigate in current session
-  navigate: (direction: "up" | "down" | "left" | "right") => {
+  resumeMap: (id: string) => {
     const state = useGlobal.getState();
-    if (!state.sessionId) {
-      console.error("No active session for navigation");
-      return;
-    }
+    state.setState("loading");
+    state.setError(null);
+    state.send(pack(MessageType.RESUME_MAP, { mapId: id }));
+  },
 
+  navigate: (
+    nextNodeId: string,
+    direction: "LEFT" | "RIGHT" | "UP",
+    currentPathNodeId: string,
+    currentPathBranchId: string
+  ) => {
+    const state = useGlobal.getState();
     state.setState("navigating");
+    state.setError(null);
 
+    console.log(`Navigating ${direction} to node ${nextNodeId}`);
     state.send(
       pack(MessageType.NAVIGATE, {
-        sessionId: state.sessionId,
+        nextNodeId,
         direction,
+        currentPathNodeId,
+        currentPathBranchId,
       })
     );
   },
 
-  // Resume existing session
-  resumeSession: (sessionId: string) => {
+  navigateBack: (currentPathNodeId: string, currentPathBranchId: string) => {
     const state = useGlobal.getState();
-    state.setState("loading");
-
-    state.send(pack(MessageType.RESUME_SESSION, { sessionId }));
+    state.setState("navigating");
+    state.setError(null);
+    state.send(
+      pack(MessageType.NAVIGATE_BACK, {
+        currentPathNodeId,
+        currentPathBranchId,
+      })
+    );
   },
 
-  // Get current viewport
-  getViewport: () => {
-    const state = useGlobal.getState();
-    if (!state.sessionId) return;
-
-    state.send(pack(MessageType.GET_VIEWPORT, { sessionId: state.sessionId }));
+  getMapBranches: (mapId: string) => {
+    const socket = useGlobal.getState().socket;
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      console.error("Socket not connected");
+      return;
+    }
+    socket.send(
+      JSON.stringify({
+        type: MessageType.GET_MAP_BRANCHES,
+        payload: { mapId },
+      })
+    );
   },
 };

@@ -1,22 +1,14 @@
 "use client";
 
 import { EmptyState } from "@/components/core/empty-state";
+import { sessionHelpers } from "@/lib/session";
 import { useGlobal } from "@/store/global-state";
 import { MessageType, pack } from "@kbnet/shared";
 
 export default function Home() {
   const { socket, send, state } = useGlobal();
 
-  const handleSearch = (query: string) => {
-    if (state === "loading") return; // Prevent multiple searches while loading
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-      return;
-    }
-    if (!query.trim()) return;
-
-    // Send the search query to the WebSocket server
-    send(pack(MessageType.START_SEARCH, { query }));
-  };
+  const handleSearch = (query: string) => sessionHelpers.startSearch(query);
 
   return (
     <div className="w-full h-screen flex flex-col bg-background text-foreground">

@@ -2,18 +2,41 @@
 
 import { ErrorState } from "@/components/core/error-state";
 import { LoadingState } from "@/components/core/loading-state";
+import { authClient } from "@/lib/auth-client";
 import { WS_SERVER_URL } from "@/lib/utils";
 import { wsHandler } from "@/lib/wsHandler";
 import { useGlobal } from "@/store/global-state";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
+
+const paths = ["/auth"];
 
 export function WSProvider({ children }: { children: React.ReactNode }) {
   const state = useGlobal();
   const router = useRouter();
+  const pathname = usePathname();
+
+  const {
+    data: session,
+    isPending, //loading state
+    error, //error object
+    refetch, //refetch the session
+  } = authClient.useSession();
 
   function connect() {
-    const ws = new WebSocket(WS_SERVER_URL);
+    if (state.socket) {
+      console.warn("WebSocket already connected");
+      return;
+    }
+
+    if (!session) {
+      console.warn("No session found, cannot connect WebSocket");
+      return;
+    }
+
+    const authToken = session.session.token;
+
+    const ws = new WebSocket(`${WS_SERVER_URL}?token=${authToken}`);
     ws.onopen = () => {
       state.setConnectionStatus("connected");
       state.setError(null);
@@ -37,6 +60,10 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
       connect();
     }
   }, [connect, state.socket]);
+
+  if (paths.includes(pathname)) {
+    return children;
+  }
 
   if (state.connectionStatus === "connecting") {
     return <LoadingState />;

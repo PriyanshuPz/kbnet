@@ -1,7 +1,9 @@
 import { DatasourceType, MindsDBConfig } from "@kbnet/shared";
 import { runMindsDBQuery } from "./mindsdb";
 import { FEED_KB_QUERY, parseArxivXML } from "./util";
+import dotenv from "dotenv";
 
+dotenv.config();
 export async function ingestArxiv(query: string) {
   const url = `http://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&max_results=10&sortBy=relevance`;
 

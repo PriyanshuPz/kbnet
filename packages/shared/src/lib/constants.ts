@@ -1,23 +1,20 @@
 export enum MessageType {
-  CONNECT = "connect",
-  DISCONNECT = "disconnect",
-  SEARCH = "search",
   START_SEARCH = "start_search",
-  NEW_KMAP = "new_kmap",
   SEARCH_RESULT = "search_result",
-  MESSAGE = "message",
   ERROR = "error",
   PING = "ping",
   PONG = "pong",
-  SESSION_CREATED = "session_created",
-  NODE_GENERATED = "node_generated",
-  NAVIGATION_COMPLETE = "navigation_complete",
-  SESSION_ERROR = "session_error",
+
+  // map
+  MAP_CREATED = "map_created",
+  RESUME_MAP = "resume_map",
+  MAP_DATA = "map_data",
+  MAP_BRANCHES = "map_branches",
+  GET_MAP_BRANCHES = "get_map_branches",
+
+  // navigation
   NAVIGATE = "navigate",
-  RESUME_SESSION = "resume_session",
-  GET_VIEWPORT = "get_viewport",
-  GET_MINIMAP = "GET_MINIMAP",
-  MINIMAP_DATA = "MINIMAP_DATA",
+  NAVIGATE_BACK = "navigate_back",
 }
 
 export enum DatasourceType {
@@ -71,32 +68,6 @@ export const MindsDBConfig = {
   KMAP_NODE_TRIGGER,
   MAIN_NODE_TRR: KMAP_NODE_TRIGGER,
   MAIN_NODE_GEN_MODEL: `gen_main_node_model`,
-  MAIN_NODE_GEN_MODEL_PROMPT: (
-    query: string,
-    kb_context: any
-  ) => `The user is starting a new knowledge map with the query: "${query}"
-
-1. Generate a concise, informative, and engaging summary of the topic "${query}" to use as the main node.
-
-2. Create 3 to 5 curiosity-driven edges phrased as:
-   - Questions the user would naturally want to explore next.
-   - Interesting, potentially unexpected follow-up ideas.
-
-Here’s some relevant knowledge already found in the background (use it to make your answer more detailed or to avoid repeating known things):
----
-${formatKbData(kb_context)}
----
-
-The exploration timeline is empty as this is the starting point.
-
-The edges should invite exploration. For example:
-- "What surprising applications does ${query} have?"
-- "Who are the most influential people in this field?"
-- "What is the future of ${query}?"
-- "What controversial debates exist around this topic?"
-
-Make your responses natural, intriguing, and make the user want to click.
-`,
 };
 
 export function formatKbData(kbDataArray: any[]): string {

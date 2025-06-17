@@ -1,5 +1,7 @@
 import mindsdb, { type SqlQueryResult } from "mindsdb-js-sdk";
+import dotenv from "dotenv";
 
+dotenv.config();
 const config = {
   host: process.env.MINDSDB_HOST || "http://localhost:47334",
   user: process.env.MINDSDB_USER || "mindsdb",

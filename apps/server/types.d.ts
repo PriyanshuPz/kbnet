@@ -4,50 +4,6 @@ interface RoomManager {
   socketToSessions: Map<WSContext<WebSocket>, Set<string>>;
 }
 
-interface NodePosition {
-  depth: number;
-  x: number;
-  y: number;
-}
-
-interface SessionData {
-  id: string;
-  userId?: string | null;
-  initialQuery: string;
-  startedAt: Date;
-  lastActiveAt: Date;
-  isActive: boolean;
-  currentNodeId?: string | null;
-  currentDepth: number;
-  currentX: number;
-  currentY: number;
-  currentNode?: Node | null;
-}
-
-// In your global state or types file
-interface NodeWithRelationship {
-  id: string;
-  title: string;
-  summary?: string | null;
-  content?: string | null;
-  generated: boolean;
-  depth: number;
-  x: number;
-  y: number;
-  relationshipType?: "DEEP" | "RELATED" | "ALTERNATIVE" | "SIBLING";
-  direction?: "up" | "down" | "left" | "right";
-}
-
-interface ViewportNodes {
-  up?: NodeWithRelationship | null;
-  down?: NodeWithRelationship | null;
-  left?: NodeWithRelationship | null;
-  right?: NodeWithRelationship | null;
-}
-interface StartSearchPayload {
-  query: string;
-}
-
 interface NavigatePayload {
   sessionId: string;
   direction: "up" | "down" | "left" | "right";

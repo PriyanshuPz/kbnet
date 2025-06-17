@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-dotenv.config();
 
 const config = {
   WIKI_ACCESS_TOKEN: process.env.WIKI_ACCESS_TOKEN,
@@ -15,6 +14,7 @@ type Article = {
 };
 
 export async function fetchTodayWiki(): Promise<Article[]> {
+  dotenv.config();
   const year = new Date().getFullYear();
   const month = String(new Date().getMonth() + 1).padStart(2, "0");
   const day = String(new Date().getDate()).padStart(2, "0");

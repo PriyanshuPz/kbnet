@@ -10,7 +10,7 @@ export default function Brand() {
           "scroll-m-20 text-center text-5xl font-extrabold tracking-tight text-balance"
         )}
       >
-        KBNet
+        KbNet
       </span>
     </div>
   );

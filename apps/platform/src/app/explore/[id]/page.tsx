@@ -1,6 +1,7 @@
 import Brand from "@/components/core/brand";
 import Link from "next/link";
 import ExplorationView from "../_components/exploration-view";
+import BranchTimeline from "../_components/branch-map";
 
 export default async function ExplorePage({
   params,
@@ -10,13 +11,13 @@ export default async function ExplorePage({
   const { id } = await params;
 
   return (
-    <div className="w-full h-screen flex flex-col overflow-hidden noselect antialiased bg-fuchsia-50 dark:bg-background-dark text-foreground dark:text-foreground-dark font-sans font-normal tracking-normal leading-normal text-base md:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl">
+    <div className="w-full h-screen flex flex-col overflow-hidden  antialiased bg-fuchsia-50/60 dark:bg-background-dark text-foreground dark:text-foreground-dark">
       <div className="flex items-center px-4 h-14 mt-3">
         <Link href="/" className="flex items-center gap-2">
           <Brand />
         </Link>
       </div>
-
+      <BranchTimeline />
       <ExplorationView id={id} />
     </div>
   );
