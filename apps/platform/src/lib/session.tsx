@@ -53,6 +53,7 @@ export const sessionHelpers = {
     const socket = useGlobal.getState().socket;
     if (!socket || socket.readyState !== WebSocket.OPEN) {
       console.error("Socket not connected");
+      // useGlobal.getState().
       return;
     }
     socket.send(

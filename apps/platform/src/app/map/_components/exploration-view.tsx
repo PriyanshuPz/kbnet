@@ -18,7 +18,6 @@ export default function ExplorationView({ id }: { id: string }) {
     relatedNode,
     similarNode,
     state,
-    ...global
   } = useGlobal();
 
   // Animation for the main card
@@ -70,23 +69,12 @@ export default function ExplorationView({ id }: { id: string }) {
     map.currentStepIndex,
   ]);
 
-  // Show loading state if we're still waiting for the initial data
-  if (!currentNode && isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-        <h2 className="text-xl font-medium">Loading your knowledge map...</h2>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen font-sans flex flex-col items-center p-4">
       <h1 className="text-2xl md:text-3xl font-bold text-primary mb-6 mt-4">
         Knowledge Explorer
       </h1>
 
-      {/* Error notification */}
       {error && (
         <div className="w-full max-w-md mb-6 p-3 bg-destructive/10 border border-destructive rounded-lg flex items-center gap-3">
           <AlertCircle className="text-destructive h-5 w-5" />
@@ -94,7 +82,6 @@ export default function ExplorationView({ id }: { id: string }) {
         </div>
       )}
 
-      {/* Loading indicator during navigation */}
       {isLoading && currentNode && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm z-50">
           <div className="flex flex-col items-center gap-3 p-6 bg-card rounded-lg shadow-lg">
@@ -183,7 +170,6 @@ export default function ExplorationView({ id }: { id: string }) {
         </AnimatePresence>
       </div>
 
-      {/* Navigation Controls */}
       <div className="mt-6 mb-8">
         <button
           onClick={handleGoBack}
@@ -195,16 +181,6 @@ export default function ExplorationView({ id }: { id: string }) {
           ) : null}
           Go Back
         </button>
-      </div>
-
-      {/* Debug Info (can be removed in production) */}
-      <div className="mt-4 text-xs text-muted-foreground bg-muted p-3 rounded-md max-w-md absolute top-1 -right-32 transform -translate-x-1/2">
-        <h3 className="font-semibold mb-1">Map Debug Info:</h3>
-        <p>Map ID: {map.id || "None"}</p>
-        <p>Current Step: {map.currentNavigationStepId || "None"}</p>
-        <p>Branch: {map.currentPathBranchId || "None"}</p>
-        <p>Step Index: {map.currentStepIndex}</p>
-        <p>State: {state}</p>
       </div>
     </div>
   );

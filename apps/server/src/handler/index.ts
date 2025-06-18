@@ -9,6 +9,7 @@ import {
   resumeMap,
 } from "../controllers/map";
 import { getMapBranches } from "../controllers/branch";
+import { getUserStats } from "../controllers/user-stats";
 
 export default class WSMessageHandler {
   roomManager: RoomManager;
@@ -17,6 +18,8 @@ export default class WSMessageHandler {
     roomManager: RoomManager = {
       socketRooms: new Map<string, Set<WSContext<WebSocket>>>(),
       socketToSessions: new Map<WSContext<WebSocket>, Set<string>>(),
+      socketToUser: new Map<WSContext<WebSocket>, string>(), // NEW
+      userToSockets: new Map<string, Set<WSContext<WebSocket>>>(), // NEW
     }
   ) {
     this.roomManager = roomManager;
@@ -35,6 +38,12 @@ export default class WSMessageHandler {
       }
 
       const userId = user.id;
+
+      // Register user connection (if not already registered)
+      if (!this.roomManager.socketToUser.has(ws)) {
+        this.connectUser(userId, ws);
+      }
+
       const { payload, type } = unpack(evt.data);
       // Connect to MindsDB instance
       await connectMindsDB();
@@ -91,6 +100,14 @@ export default class WSMessageHandler {
           });
           break;
         }
+
+        case MessageType.GET_USER_STAT: {
+          await getUserStats({
+            userId,
+            ws,
+          });
+          break;
+        }
         default:
           console.log("WebSocket message received:", type, payload);
           break;
@@ -111,6 +128,15 @@ export default class WSMessageHandler {
       this.sendErrorToSocket(ws, "Session or user not found");
       return;
     }
+
+    // Track user <-> socket
+    this.roomManager.socketToUser.set(ws, userId);
+
+    if (!this.roomManager.userToSockets.has(userId)) {
+      this.roomManager.userToSockets.set(userId, new Set());
+    }
+    this.roomManager.userToSockets.get(userId)!.add(ws);
+
     // Add session to socket's session set
     if (!this.roomManager.socketToSessions.has(ws)) {
       this.roomManager.socketToSessions.set(ws, new Set());
@@ -122,7 +148,21 @@ export default class WSMessageHandler {
       this.roomManager.socketRooms.set(sessionId, new Set());
     }
     this.roomManager.socketRooms.get(sessionId)!.add(ws);
+
     console.log(`Socket joined session room ${sessionId} for user ${userId}`);
+  }
+
+  public connectUser(userId: string, ws: WSContext<WebSocket>): void {
+    // Track user <-> socket
+    this.roomManager.socketToUser.set(ws, userId);
+
+    if (!this.roomManager.userToSockets.has(userId)) {
+      this.roomManager.userToSockets.set(userId, new Set());
+    }
+
+    this.roomManager.userToSockets.get(userId)!.add(ws);
+
+    console.log(`User ${userId} connected (no session)`);
   }
 
   public sendToSession(
@@ -137,6 +177,22 @@ export default class WSMessageHandler {
         socket.send(pack(type, payload));
       });
       console.log(`Sent message of type ${type} to session ${sessionId}`);
+    }
+  }
+
+  public sendToUser(
+    userId: string,
+    type: MessageType,
+    payload: Record<string, any>
+  ): void {
+    const sockets = this.roomManager.userToSockets.get(userId);
+    if (sockets) {
+      sockets.forEach((socket: WSContext<WebSocket>) => {
+        socket.send(pack(type, payload));
+      });
+      console.log(`Sent message of type ${type} to user ${userId}`);
+    } else {
+      console.log(`User ${userId} is not connected`);
     }
   }
 
@@ -158,6 +214,19 @@ export default class WSMessageHandler {
         }
       });
       this.roomManager.socketToSessions.delete(ws);
+    }
+
+    // Clean user <-> socket mapping
+    const userId = this.roomManager.socketToUser.get(ws);
+    if (userId) {
+      const sockets = this.roomManager.userToSockets.get(userId);
+      if (sockets) {
+        sockets.delete(ws);
+        if (sockets.size === 0) {
+          this.roomManager.userToSockets.delete(userId);
+        }
+      }
+      this.roomManager.socketToUser.delete(ws);
     }
   }
 }

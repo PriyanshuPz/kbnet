@@ -11,9 +11,9 @@ export default async function ExplorePage({
   const { id } = await params;
 
   return (
-    <div className="w-full h-screen flex flex-col overflow-hidden  antialiased bg-fuchsia-50/60 dark:bg-background-dark text-foreground dark:text-foreground-dark">
+    <div className="w-full h-screen flex flex-col overflow-hidden antialiased text-foreground dark:text-foreground-dark">
       <div className="flex items-center px-4 h-14 mt-3">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/pad" className="flex items-center gap-2">
           <Brand />
         </Link>
       </div>

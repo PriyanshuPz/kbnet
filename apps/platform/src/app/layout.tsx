@@ -29,13 +29,13 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          // defaultTheme="system"
-          defaultTheme="light"
+          defaultTheme="system"
+          // defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
           <WSProvider>{children}</WSProvider>
-          <Toaster />
+          <Toaster position="top-right" />
         </ThemeProvider>
       </body>
     </html>

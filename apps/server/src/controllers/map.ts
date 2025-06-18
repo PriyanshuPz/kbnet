@@ -14,6 +14,7 @@ import { google } from "../lib/ai";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { handler } from "../handler";
+import { applyUserStats } from "./user-stats";
 
 interface BasePayload {
   userId: string;
@@ -199,6 +200,9 @@ export async function createNewMap({ userId, data, ws }: NewMapPayload) {
 
     console.log("New map created successfully:", result.currentPathBranchId);
     handler.joinSessionRoom(userId, ws, result.mapId);
+
+    await applyUserStats(userId, "START_MAP");
+
     handler.sendToSession(result.mapId, MessageType.MAP_CREATED, result);
   } catch (error) {
     console.error("Error creating new map:", error);
@@ -369,6 +373,8 @@ export async function navigateMap({
         // User has gone back, so we create a new branch
         newPathBranchId = generateId("branch");
         newStepIndex = 0; // Reset step index for the new branch
+
+        await applyUserStats(userId, "DISCOVERED_NEW_BRANCH");
       }
 
       newStep = await prisma.$transaction(async (tx) => {
@@ -415,6 +421,10 @@ export async function navigateMap({
 
     handler.joinSessionRoom(userId, ws, mapId);
     handler.sendToSession(mapId, MessageType.MAP_DATA, result);
+    // if it is new step, apply user stats
+    if (!existingStep) {
+      await applyUserStats(userId, "VISIT_NODE");
+    }
   } catch (error) {
     console.error("Error naivgating map:", error);
     ws.send(

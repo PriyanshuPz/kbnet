@@ -21,7 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export const BranchMinimap = () => {
   const { branches, currentBranchId, map, navigateToBranch } = useGlobal();
@@ -238,7 +238,7 @@ export const BranchMinimap = () => {
           <div className="bg-muted p-2 flex items-center justify-between border-b">
             <div className="flex items-center gap-2">
               <GitBranch className="h-4 w-4" />
-              <h3 className="text-sm font-medium">Git Timeline</h3>
+              <h3 className="text-sm font-medium">Timeline</h3>
               {branches.length > 0 && (
                 <Badge variant="outline" className="ml-1 h-5 px-1">
                   {branches.length}
@@ -282,67 +282,6 @@ export const BranchMinimap = () => {
               </div>
             ) : (
               <div className="relative">
-                {/* Branch lines (SVG) */}
-                <svg
-                  className="absolute top-0 left-0 w-full h-full"
-                  style={{ pointerEvents: "none" }}
-                >
-                  {/* Main timeline vertical lines */}
-                  {branches.map((branch, branchIdx) => {
-                    const color = branchColors[branchIdx % branchColors.length];
-                    const isHighlighted = hoveredBranch === branch.id;
-                    const isCurrent = branch.id === currentBranchId;
-
-                    return (
-                      <line
-                        key={`line-${branch.id}`}
-                        x1={30 + branchIdx * 30}
-                        y1="0"
-                        x2={30 + branchIdx * 30}
-                        y2={branch.steps.length * 40 + 20}
-                        stroke={color}
-                        strokeWidth={isHighlighted || isCurrent ? 3 : 2}
-                        strokeOpacity={isHighlighted || isCurrent ? 1 : 0.7}
-                        strokeDasharray={isCurrent ? "none" : "none"}
-                      />
-                    );
-                  })}
-
-                  {/* Branch connections */}
-                  {branches.map((branch, branchIdx) => {
-                    if (!branch.parentBranchId) return null;
-
-                    const divergeInfo = branchDivergenceInfo[branch.id];
-                    if (!divergeInfo) return null;
-
-                    const parentBranchIdx = branches.findIndex(
-                      (b) => b.id === branch.parentBranchId
-                    );
-                    if (parentBranchIdx < 0) return null;
-
-                    const startX = 30 + parentBranchIdx * 30;
-                    const startY = (divergeInfo.stepIndex + 1) * 40;
-                    const endX = 30 + branchIdx * 30;
-                    const endY = 10; // Top of the child branch
-
-                    const color = branchColors[branchIdx % branchColors.length];
-                    const isHighlighted = hoveredBranch === branch.id;
-
-                    return (
-                      <path
-                        key={`branch-${branch.id}`}
-                        d={`M ${startX} ${startY} C ${startX} ${startY + 20}, ${endX} ${endY - 20}, ${endX} ${endY}`}
-                        stroke={color}
-                        strokeWidth={isHighlighted ? 3 : 2}
-                        fill="none"
-                        strokeDasharray={isHighlighted ? "none" : "5,5"}
-                        strokeOpacity={isHighlighted ? 1 : 0.7}
-                      />
-                    );
-                  })}
-                </svg>
-
-                {/* Branches and their nodes */}
                 <div className="relative pt-2 pb-4">
                   {branches.map((branch, branchIdx) => {
                     const color = branchColors[branchIdx % branchColors.length];

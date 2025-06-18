@@ -1,62 +1,145 @@
 "use server";
 
-import { Node, prisma } from "@kbnet/db";
+import { prisma } from "@kbnet/db";
+import { auth } from "@kbnet/shared";
+import { calculateXpForLevel } from "@kbnet/shared/src/lib/utils";
+import { headers } from "next/headers";
+export interface User {
+  id: string;
+  name: string | null;
+  image: string | null;
+  username: string;
+  email: string;
+}
 
-export async function fetchMapData(id: string) {
+export interface Stats {
+  totalMaps: number;
+  activeMaps: number;
+  lastActiveMap: Date | null;
+  badges: string[];
+  xp: number;
+  level: number;
+  streak: number;
+  longestStreak: number;
+  xpNeededForNextLevel: number; // XP needed for the next level
+}
+
+export interface MapStep {
+  id: string;
+  stepIndex: number;
+  direction: string;
+  node: {
+    id: string;
+    title: string;
+  };
+}
+
+export interface Map {
+  id: string;
+  title: string;
+  lastActive: Date;
+  createdAt: Date;
+  isActive: boolean;
+  currentStep: MapStep | null;
+}
+
+export interface DashboardData {
+  user: User;
+  stats: Stats;
+  maps: Map[];
+}
+export async function getPadData(): Promise<DashboardData | null> {
   try {
-    const map = await prisma.map.findUnique({
-      where: { id },
+    const session = await auth.api.getSession({
+      headers: await headers(), // you need to pass the headers object.
     });
 
-    if (!map) throw new Error("Map not found");
+    if (!session) throw new Error("No session found");
 
-    if (!map.currentNavigationStepId)
-      throw new Error("No current navigation step found");
-
-    const currentStep = await prisma.navigationStep.findUnique({
-      where: { id: map.currentNavigationStepId },
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
       include: {
-        node: true,
+        badges: {
+          select: {
+            badge: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        maps: {
+          select: {
+            id: true,
+            initialQuery: true,
+            lastActiveAt: true,
+            startedAt: true,
+            isActive: true,
+            currentNavigationStep: {
+              select: {
+                id: true,
+                stepIndex: true,
+                timestamp: true,
+                direction: true,
+                node: {
+                  select: {
+                    id: true,
+                    title: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { lastActiveAt: "desc" },
+          take: 10, // Limit to the last 10 maps
+        },
       },
     });
 
-    if (!currentStep) throw new Error("Current step not found");
+    if (!user) throw new Error("User not found");
 
-    const mainNode = currentStep.node;
+    const maps = user.maps.map((map) => ({
+      id: map.id,
+      title: map.initialQuery,
+      lastActive: map.lastActiveAt,
+      createdAt: map.startedAt,
+      isActive: map.isActive,
+      currentStep: map.currentNavigationStep
+        ? {
+            id: map.currentNavigationStep.id,
+            stepIndex: map.currentNavigationStep.stepIndex,
+            timestamp: map.currentNavigationStep.timestamp,
+            direction: map.currentNavigationStep.direction,
+            node: {
+              id: map.currentNavigationStep.node.id,
+              title: map.currentNavigationStep.node.title,
+            },
+          }
+        : null,
+    }));
 
-    const relationships = await prisma.nodeRelationship.findMany({
-      where: {
-        sourceNodeId: mainNode.id,
-      },
-      include: {
-        targetNode: true,
-      },
-    });
-    const neighborsMap: {
-      deep?: Node;
-      related?: Node;
-      similar?: Node;
-    } = {};
-
-    for (const rel of relationships) {
-      if (rel.type === "DEEP") {
-        neighborsMap.deep = rel.targetNode;
-      } else if (rel.type === "RELATED") {
-        neighborsMap.related = rel.targetNode;
-      } else if (rel.type === "SIMILAR") {
-        neighborsMap.similar = rel.targetNode;
-      }
-    }
+    const stats: Stats = {
+      totalMaps: user.maps.length,
+      activeMaps: user.maps.filter((map) => map.isActive).length,
+      lastActiveMap: user.maps[0]?.lastActiveAt || null,
+      badges: user.badges.map((badge) => badge.badge.name),
+      xp: user.xp,
+      level: user.level,
+      streak: user.currentStreak || 0,
+      longestStreak: user.longestStreak || 0,
+      xpNeededForNextLevel: calculateXpForLevel(user.level + 1), // XP needed for the next level
+    };
 
     return {
-      mapId: map.id,
-      currentNavigationStepId: currentStep.id,
-      currentPathBranchId: currentStep.pathBranchId,
-      currentStepIndex: currentStep.stepIndex,
-      mainNode: mainNode,
-      similarNode: neighborsMap.similar || null,
-      relatedNode: neighborsMap.related || null,
-      deepNode: neighborsMap.deep || null,
+      user: {
+        id: user.id,
+        name: user.name,
+        image: user.image,
+        username: user.username || user.email.split("@")[0], // Fallback to email prefix if username is not set
+        email: user.email,
+      },
+      stats,
+      maps,
     };
   } catch (error) {
     return null;

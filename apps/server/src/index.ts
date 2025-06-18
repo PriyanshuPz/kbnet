@@ -1,7 +1,7 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { createNodeWebSocket } from "@hono/node-ws";
-import WSMessageHandler from "./handler";
+import WSMessageHandler, { handler } from "./handler";
 import { auth } from "@kbnet/shared";
 import dotenv from "dotenv";
 
@@ -34,19 +34,10 @@ app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
 
-const wsHandler = new WSMessageHandler();
-
 app.get(
   "/ws",
   upgradeWebSocket(async (c) => {
-    const url = new URL(c.req.url);
-    const authToken = url.searchParams.get("token");
-    if (!authToken) {
-      throw new Error("Unauthorized: No token provided");
-    }
     const headers = c.req.raw.headers;
-    headers.set("Authorization", `Bearer ${authToken}`);
-
     const session = await auth.api.getSession({
       headers: headers,
     });
@@ -64,7 +55,7 @@ app.get(
       },
       onClose(evt, ws) {
         console.log("WebSocket connection closed", evt.type);
-        wsHandler.cleanUpSocket(ws);
+        handler.cleanUpSocket(ws);
       },
       onMessage: (evt, ws) => {
         const session = c.get("session");
@@ -73,7 +64,7 @@ app.get(
           console.warn("Session or user not found on message");
           return;
         }
-        wsHandler.handle(c, evt, ws);
+        handler.handle(c, evt, ws);
       },
     };
   })

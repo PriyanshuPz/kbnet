@@ -20,8 +20,41 @@ model User {
   accounts      Account[]
   maps          Map[]
 
+  // Gamification Fields
+
+  username         String?
+  displayUsername  String?
+  level            Int         @default(1)
+  xp               Int         @default(0)
+  currentStreak    Int         @default(0)
+  longestStreak    Int         @default(0)
+  lastActivityDate DateTime? // For streak tracking
+  badges           UserBadge[]
+
   @@unique([email])
+  @@unique([username]) // Ensure usernames are unique
   @@map("user")
+}
+
+model Badge {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  description String
+  iconUrl     String?
+  createdAt   DateTime    @default(now())
+  userBadges  UserBadge[]
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  awardedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId]) // Prevent duplicate badges
 }
 
 model Session {

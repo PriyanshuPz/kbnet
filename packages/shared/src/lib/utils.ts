@@ -26,3 +26,7 @@ export function unpack(data: any): {
     throw error;
   }
 }
+
+export function calculateXpForLevel(level: number): number {
+  return Math.floor(100 * Math.pow(level, 1.5));
+}

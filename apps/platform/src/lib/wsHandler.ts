@@ -1,6 +1,12 @@
 import { useGlobal } from "@/store/global-state";
-import { MessageType, NewMapResult } from "@kbnet/shared";
+import {
+  AchievementNotification,
+  MessageType,
+  NewMapResult,
+  UserStats,
+} from "@kbnet/shared";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { toast } from "sonner";
 
 export async function wsHandler(
   event: MessageEvent,
@@ -21,10 +27,9 @@ export async function wsHandler(
       case MessageType.PONG:
         console.log("Echo message received:", payload);
       case MessageType.MAP_CREATED:
-        // Store session ID and navigate to exploration page
         const data = payload as NewMapResult;
         setMapData(data, state);
-        router.push(`/explore/${data.mapId}`);
+        router.push(`/map/${data.mapId}`);
 
         console.log("Map created:", data.mapId);
         state.setState("idle");
@@ -48,6 +53,38 @@ export async function wsHandler(
         const errorMessage = payload.error || "An unknown error occurred";
         state.setError(errorMessage);
         state.setState("error");
+        break;
+      }
+
+      case MessageType.SHOW_NOTIFICATION: {
+        const { message, confetti, sound, badge, extra } =
+          payload as AchievementNotification;
+        state.setState("idle");
+        state.setError(null);
+        toast.info(message, {
+          style: {
+            maxWidth: "400px",
+            whiteSpace: "normal",
+            wordWrap: "break-word",
+          },
+          className: "bg-card text-card-foreground border-2 border-black",
+          duration: 5000,
+          icon: confetti ? "🎉" : undefined,
+          position: "top-right",
+        });
+        // state.showNotification({
+        //   message,
+        //   confetti: confetti || false,
+        //   sound: sound || "default",
+        //   badge: badge || null,
+        //   extra: extra || {},
+        // });
+        break;
+      }
+      case MessageType.USER_STAT: {
+        const userStats = payload as UserStats;
+        state.setUserStats(userStats);
+        state.setState("idle");
         break;
       }
 

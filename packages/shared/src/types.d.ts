@@ -11,6 +11,24 @@ export interface NewMapResult {
   deepNode: Node | null;
 }
 
+export interface UserStats {
+  xp: number;
+  level: number;
+  currentStreak: number;
+  longestStreak: number;
+  badges: string[];
+  xpNeededForNextLevel: number;
+}
+
+export interface AchievementNotification {
+  type: "LEVEL_UP" | "STREAK_MAINTAINED" | "BADGE_UNLOCKED";
+  message: string;
+  confetti?: boolean;
+  sound?: string;
+  badge?: string;
+  extra?: Record<string, any>;
+}
+
 export interface FlowNode {
   id: string;
   type: "stepNode";

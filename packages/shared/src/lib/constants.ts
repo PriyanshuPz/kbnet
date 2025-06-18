@@ -15,6 +15,11 @@ export enum MessageType {
   // navigation
   NAVIGATE = "navigate",
   NAVIGATE_BACK = "navigate_back",
+
+  // user stat
+  GET_USER_STAT = "get_user_stat",
+  USER_STAT = "user_stat",
+  SHOW_NOTIFICATION = "SHOW_NOTIFICATION",
 }
 
 export enum DatasourceType {

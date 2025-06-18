@@ -2,11 +2,13 @@
 interface RoomManager {
   socketRooms: Map<string, Set<WSContext<WebSocket>>>;
   socketToSessions: Map<WSContext<WebSocket>, Set<string>>;
+  socketToUser: Map<WSContext<WebSocket>, string>; // NEW
+  userToSockets: Map<string, Set<WSContext<WebSocket>>>; // NEW
 }
 
-interface NavigatePayload {
-  sessionId: string;
-  direction: "up" | "down" | "left" | "right";
+interface BasePayload {
+  userId: string;
+  ws: WSContext<WebSocket>;
 }
 
 interface ResumeSessionPayload {
@@ -35,35 +37,4 @@ interface AINodeResponse {
 }
 interface GetMiniMapPayload {
   sessionId: string;
-}
-
-interface MiniMapData {
-  nodes: Array<{
-    id: string;
-    depth: number;
-    x: number;
-    y: number;
-    generated: boolean;
-    title: string;
-    isCurrent: boolean;
-    relationshipType?: string;
-  }>;
-  connections: Array<{
-    fromNodeId: string;
-    toNodeId: string;
-    type: string;
-  }>;
-  navigationPath: Array<{
-    fromDepth: number;
-    fromX: number;
-    toDepth: number;
-    toX: number;
-    direction: string;
-  }>;
-  bounds: {
-    minX: number;
-    maxX: number;
-    minDepth: number;
-    maxDepth: number;
-  };
 }

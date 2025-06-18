@@ -1,4 +1,5 @@
 import { Node } from "@kbnet/db";
+import { UserStats } from "@kbnet/shared";
 import { create } from "zustand";
 
 type MapState = {
@@ -22,32 +23,25 @@ interface Branch {
   forkPoint: string | null;
 }
 
-type AppState =
-  | "loading" // Initial loading or general loading
-  | "error" // Error state
-  | "idle" // Ready for user interaction
-  | "searching" // Searching for new topics
-  | "navigating"; // Actively navigating between nodes
+type AppState = "loading" | "error" | "idle" | "searching" | "navigating";
 
 type ConnectionStatus = "connecting" | "connected" | "disconnected";
 
-interface WSState {
-  // WebSocket connection state
+interface GlobalState {
+  // WebSocket
   socket: WebSocket | null;
   setSocket: (socket: WebSocket | null) => void;
   connectionStatus: ConnectionStatus;
   setConnectionStatus: (status: ConnectionStatus) => void;
   send: (msg: any) => void;
 
-  // Global state for the application error handling
+  // App State
   error: string | null;
   setError: (error: string | null) => void;
-
-  // Global state for managing the application state
   state: AppState;
   setState: (state: AppState) => void;
 
-  // Map
+  // Map State
   map: MapState;
   setMap: (map: MapState) => void;
   setMapId: (id: string | null) => void;
@@ -56,49 +50,54 @@ interface WSState {
   setCurrentStepIndex: (index: number) => void;
   resetMap: () => void;
 
-  // current nodes state
+  // Nodes
   currentNode: Node | null;
   setCurrentNode: (node: Node | null) => void;
-
   deepNode: Node | null;
   setDeepNode: (node: Node | null) => void;
-
   relatedNode: Node | null;
   setRelatedNode: (node: Node | null) => void;
-
   similarNode: Node | null;
   setSimilarNode: (node: Node | null) => void;
-
-  // Helper for checking if a specific node direction is available
   hasNodeInDirection: (direction: "UP" | "LEFT" | "RIGHT") => boolean;
 
-  // Branches management
+  // Branches
   branches: Branch[];
   currentBranchId: string | null;
-
   setBranches: (branches: Branch[]) => void;
   setCurrentBranchId: (branchId: string | null) => void;
   navigateToBranch: (branchId: string, stepId: string) => void;
+
+  // User Stats
+  userStats: UserStats | null;
+  setUserStats: (stats: UserStats) => void;
+  updateXp: (xp: number) => void;
+  updateLevel: (level: number) => void;
+  updateStreak: (currentStreak: number, longestStreak: number) => void;
+  addBadge: (badge: string) => void;
 }
 
-export const useGlobal = create<WSState>((set, get) => ({
-  // Initial state for WebSocket connection
+export const useGlobal = create<GlobalState>((set, get) => ({
+  // WebSocket
   socket: null,
-  setSocket: (socket) => {
-    set({ socket });
-  },
+  setSocket: (socket) => set({ socket }),
   connectionStatus: "connecting",
   setConnectionStatus: (status) => set({ connectionStatus: status }),
+  retryConnection: () => {
+    const socket = get().socket;
+    if (socket) {
+      socket.close();
+      set({ socket: null, connectionStatus: "connecting" });
+    }
+
+    // Logic to re-establish the WebSocket connection
+    // This could be a function that creates a new WebSocket instance
+  },
   send: (msg) => {
     const socket = get().socket;
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(msg);
-
-      // Don't set loading state for certain message types if needed
-      set({
-        state: "loading",
-        error: null,
-      });
+      set({ state: "loading", error: null });
     } else {
       console.error("Cannot send message: WebSocket not connected");
       set({
@@ -108,15 +107,13 @@ export const useGlobal = create<WSState>((set, get) => ({
     }
   },
 
-  // Global state for error handling
+  // App State
   error: null,
   setError: (error) => set({ error }),
-
-  // Global state management
-  setState: (state) => set({ state }),
   state: "idle",
+  setState: (state) => set({ state }),
 
-  // Map state management
+  // Map State
   map: {
     id: null,
     currentNavigationStepId: null,
@@ -124,39 +121,23 @@ export const useGlobal = create<WSState>((set, get) => ({
     currentStepIndex: 0,
   },
   setMap: (map) => set({ map }),
-  setMapId: (id) => {
+  setMapId: (id) =>
     set((state) => ({
-      map: {
-        ...state.map,
-        id,
-      },
-    }));
-  },
-  setCurrentNavigationStepId: (stepId) => {
+      map: { ...state.map, id },
+    })),
+  setCurrentNavigationStepId: (stepId) =>
     set((state) => ({
-      map: {
-        ...state.map,
-        currentNavigationStepId: stepId,
-      },
-    }));
-  },
-  setCurrentPathBranchId: (branchId) => {
+      map: { ...state.map, currentNavigationStepId: stepId },
+    })),
+  setCurrentPathBranchId: (branchId) =>
     set((state) => ({
-      map: {
-        ...state.map,
-        currentPathBranchId: branchId,
-      },
-    }));
-  },
-  setCurrentStepIndex: (index) => {
+      map: { ...state.map, currentPathBranchId: branchId },
+    })),
+  setCurrentStepIndex: (index) =>
     set((state) => ({
-      map: {
-        ...state.map,
-        currentStepIndex: index,
-      },
-    }));
-  },
-  resetMap: () => {
+      map: { ...state.map, currentStepIndex: index },
+    })),
+  resetMap: () =>
     set({
       map: {
         id: null,
@@ -170,10 +151,9 @@ export const useGlobal = create<WSState>((set, get) => ({
       similarNode: null,
       error: null,
       state: "idle",
-    });
-  },
+    }),
 
-  // Current nodes state
+  // Nodes
   currentNode: null,
   setCurrentNode: (node) => set({ currentNode: node }),
   deepNode: null,
@@ -182,8 +162,6 @@ export const useGlobal = create<WSState>((set, get) => ({
   setRelatedNode: (node) => set({ relatedNode: node }),
   similarNode: null,
   setSimilarNode: (node) => set({ similarNode: node }),
-
-  // Helper function to check if a direction has an available node
   hasNodeInDirection: (direction) => {
     const state = get();
     switch (direction) {
@@ -198,21 +176,57 @@ export const useGlobal = create<WSState>((set, get) => ({
     }
   },
 
-  // Branches management
+  // Branches
   branches: [],
   currentBranchId: null,
-
-  navigateToBranch: (branchId, stepId) => {
-    // set({
-    //   currentBranchId: branchId,
-    //   map: {
-    //     ...get().map,
-    //     currentNavigationStepId: stepId,
-    //     currentPathBranchId: branchId,
-    //   },
-    // });
-  },
-
   setBranches: (branches) => set({ branches }),
   setCurrentBranchId: (branchId) => set({ currentBranchId: branchId }),
+  navigateToBranch: (branchId, stepId) => {
+    set((state) => ({
+      currentBranchId: branchId,
+      map: {
+        ...state.map,
+        currentNavigationStepId: stepId,
+        currentPathBranchId: branchId,
+      },
+    }));
+  },
+
+  // User Stats
+  userStats: null,
+  setUserStats: (stats) => set({ userStats: stats }),
+  updateXp: (xp) =>
+    set((state) => ({
+      userStats: state.userStats
+        ? { ...state.userStats, xp }
+        : {
+            xp,
+            level: 1,
+            currentStreak: 0,
+            longestStreak: 0,
+            badges: [],
+            xpNeededForNextLevel: 0,
+          }, // Default values if userStats is null
+    })),
+  updateLevel: (level) =>
+    set((state) => ({
+      userStats: state.userStats ? { ...state.userStats, level } : null,
+    })),
+  updateStreak: (currentStreak, longestStreak) =>
+    set((state) => ({
+      userStats: state.userStats
+        ? { ...state.userStats, currentStreak, longestStreak }
+        : null,
+    })),
+  addBadge: (badge) =>
+    set((state) => ({
+      userStats: state.userStats
+        ? {
+            ...state.userStats,
+            badges: state.userStats.badges.includes(badge)
+              ? state.userStats.badges
+              : [...state.userStats.badges, badge],
+          }
+        : null,
+    })),
 }));
