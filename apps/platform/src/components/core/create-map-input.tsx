@@ -89,7 +89,7 @@ export default function CreateMapInput() {
                 ? "Creating map..."
                 : `Try "${currentSuggestion || suggestedTopics[0]}"`
             }
-            className="h-12 pl-9 pr-4 text-base bg-background border-2 border-primary
+            className="h-12 pl-9 pr-4 text-base bg-background border-2 border-black
                       relative shadow-sm dark:bg-card
                       after:absolute after:inset-0 after:-z-10 after:translate-x-1
                       after:translate-y-1 after:border-2 after:border-primary
@@ -122,9 +122,8 @@ export default function CreateMapInput() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className="absolute left-0 right-0 mt-2 py-2 bg-background border-2
-                      border-primary rounded-lg shadow-sm dark:bg-card
-                      after:absolute after:inset-0 after:-z-10 after:translate-x-1
-                      after:translate-y-1 after:border-2 after:border-primary
+                      border-black rounded-lg shadow-sm dark:bg-card
+                      after:absolute after:inset-0 after:-z-10 after:border-primary
                       after:bg-primary/5 z-50"
           >
             <div className="p-2">

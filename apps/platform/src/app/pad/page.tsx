@@ -18,5 +18,9 @@ export default async function PadPage() {
     );
   }
 
-  return <Dashboard {...data} />;
+  return (
+    <div className="p-6 min-h-screen bg-[#faf8f3] dark:bg-[#1a1a1a]">
+      <Dashboard {...data} />
+    </div>
+  );
 }

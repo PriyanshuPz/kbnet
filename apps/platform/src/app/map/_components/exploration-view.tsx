@@ -1,243 +1,147 @@
 "use client";
 
 import React, { useCallback, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { AlertCircle } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { sessionHelpers } from "@/lib/session";
 import { useGlobal } from "@/store/global-state";
-
+import { useMapNavigation } from "@/hooks/use-map-navigation";
+import { useSwipeGestures } from "@/hooks/use-swipe";
 import { Node } from "@kbnet/db";
-import { AlertCircle, Loader2 } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { TopicCard } from "./topic-card";
+import { NavigationHints } from "./navigation-controls";
+import { Gamebar } from "./game-bar";
+import { toast } from "sonner";
 
-export default function ExplorationView({ id }: { id: string }) {
+const slideVariants = {
+  enter: (direction: "up" | "down" | "left" | "right") => ({
+    x: direction === "left" ? 1000 : direction === "right" ? -1000 : 0,
+    y: direction === "up" ? 1000 : direction === "down" ? -1000 : 0,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    y: 0,
+    opacity: 1,
+  },
+  exit: (direction: "up" | "down" | "left" | "right") => ({
+    x: direction === "left" ? -1000 : direction === "right" ? 1000 : 0,
+    y: direction === "up" ? -1000 : direction === "down" ? 1000 : 0,
+    opacity: 0,
+  }),
+};
+
+export default function ExplorationView() {
+  const params = useParams();
+  const id = params.id as string;
+  const { error, map, state } = useGlobal();
+  const { handleNavigate, handleGoBack, canGoBack, nodes } = useMapNavigation();
+
+  const [isCardExpanded, setIsCardExpanded] = React.useState(false);
   const {
-    connectionStatus,
-    currentNode,
-    deepNode,
-    error,
-    map,
-    relatedNode,
-    similarNode,
-    state,
-  } = useGlobal();
+    handlers,
+    swipeDirection,
+    isAnimating,
+    lastSwipeDirection,
+    canSwipe,
+    cooldownRemaining,
+  } = useSwipeGestures({
+    onSwipedLeft: () => handleSwipeNavigation(nodes.similar, "LEFT"),
+    onSwipedRight: () => handleSwipeNavigation(nodes.related, "RIGHT"),
+    onSwipedUp: () => handleSwipeNavigation(nodes.deep, "UP"),
+    onSwipedDown: handleGoBack,
+    isExpanded: isCardExpanded,
+  });
+  const handleSwipeNavigation = useCallback(
+    (node: Node | null, direction: "UP" | "LEFT" | "RIGHT") => {
+      if (!canSwipe()) {
+        toast("Please wait before swiping again.");
+        return;
+      }
+      if (!node) {
+        toast("Loading next node...");
+        return;
+      }
+      handleNavigate(node, direction);
+    },
+    [handleNavigate]
+  );
 
-  // Animation for the main card
   useEffect(() => {
     if (id && id !== map.id) {
       sessionHelpers.resumeMap(id);
     }
   }, [id, map.id]);
 
-  const isLoading = state === "loading" || state === "navigating";
-
-  // Handle navigation to a new node
-  const handleNavigate = useCallback(
-    (targetNode: Node | null, direction: "LEFT" | "RIGHT" | "UP") => {
-      if (isLoading || !map.id || !map.currentNavigationStepId || !targetNode) {
-        return;
-      }
-
-      sessionHelpers.navigate(
-        targetNode.id,
-        direction,
-        map.currentNavigationStepId,
-        map.currentPathBranchId
-      );
-    },
-    [isLoading, map.id, map.currentNavigationStepId, map.currentPathBranchId]
-  );
-
-  // Handle go back action
-  const handleGoBack = useCallback(() => {
-    if (
-      isLoading ||
-      !map.id ||
-      !map.currentNavigationStepId ||
-      map.currentStepIndex <= 0
-    ) {
-      return;
-    }
-
-    sessionHelpers.navigateBack(
-      map.currentNavigationStepId,
-      map.currentPathBranchId
-    );
-  }, [
-    isLoading,
-    map.id,
-    map.currentNavigationStepId,
-    map.currentPathBranchId,
-    map.currentStepIndex,
-  ]);
-
   return (
-    <div className="min-h-screen font-sans flex flex-col items-center p-4">
-      <h1 className="text-2xl md:text-3xl font-bold text-primary mb-6 mt-4">
-        Knowledge Explorer
-      </h1>
-
-      {error && (
-        <div className="w-full max-w-md mb-6 p-3 bg-destructive/10 border border-destructive rounded-lg flex items-center gap-3">
-          <AlertCircle className="text-destructive h-5 w-5" />
-          <p className="text-sm text-destructive">{error}</p>
-        </div>
-      )}
-
-      {isLoading && currentNode && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm z-50">
-          <div className="flex flex-col items-center gap-3 p-6 bg-card rounded-lg shadow-lg">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
-            <p className="text-muted-foreground">Exploring connections...</p>
+    <div className="fixed inset-0 flex items-center justify-center bg-background overflow-hidden">
+      {cooldownRemaining > 0 && (
+        <div className="absolute top-4 right-4 z-50">
+          <div className="paper-effect px-3 py-1 rounded-lg">
+            <span className="text-sm font-medium text-white">
+              Cooldown: {`${Math.ceil(cooldownRemaining / 1000)}s`}
+            </span>
           </div>
         </div>
       )}
-
-      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {/* Similar Node (Left) */}
-        <AnimatePresence mode="wait">
+      <Gamebar />
+      <div
+        {...handlers}
+        className="w-full h-full flex items-center justify-center p-4"
+      >
+        {error && (
           <motion.div
-            key={similarNode?.id || "similar-placeholder"}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="md:col-span-1"
-          >
-            <TopicCard
-              node={similarNode}
-              type="SIMILAR"
-              onClick={() => handleNavigate(similarNode, "LEFT")}
-              disabled={isLoading}
-            />
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Main Node (Center) */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentNode?.id || "main-placeholder"}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className="md:col-span-1"
-          >
-            <TopicCard
-              node={currentNode}
-              type="MAIN"
-              isMain={true}
-              onClick={() => {}}
-              disabled={isLoading}
-            />
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Related Node (Right) */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={relatedNode?.id || "related-placeholder"}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3 }}
-            className="md:col-span-1"
-          >
-            <TopicCard
-              node={relatedNode}
-              type="RELATED"
-              onClick={() => handleNavigate(relatedNode, "RIGHT")}
-              disabled={isLoading}
-            />
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Deep Node (Bottom) */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={deepNode?.id || "deep-placeholder"}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.3 }}
-            className="md:col-start-2 md:col-span-1"
+            className="absolute top-4 w-full max-w-md px-4 z-50"
           >
-            <TopicCard
-              node={deepNode}
-              type="DEEP"
-              onClick={() => handleNavigate(deepNode, "UP")}
-              disabled={isLoading}
-            />
+            <div className="paper-effect p-3 rounded-lg flex items-center gap-3">
+              <AlertCircle className="text-destructive h-5 w-5" />
+              <p className="text-sm">{error}</p>
+            </div>
           </motion.div>
-        </AnimatePresence>
-      </div>
+        )}
 
-      <div className="mt-6 mb-8">
-        <button
-          onClick={handleGoBack}
-          disabled={isLoading || map.currentStepIndex <= 0}
-          className="px-5 py-2 bg-secondary text-secondary-foreground font-medium rounded-lg shadow hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-secondary/50 disabled:opacity-50 transition-colors duration-200"
-        >
-          {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-2 inline" />
-          ) : null}
-          Go Back
-        </button>
+        <div className="noselect w-full max-w-xl relative">
+          <AnimatePresence mode="wait" custom={swipeDirection}>
+            <motion.div
+              key={nodes.current?.id || "main-placeholder"}
+              custom={swipeDirection}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+              }}
+              className="w-full noselect"
+            >
+              <TopicCard
+                key={`${nodes.current?.id}-${nodes.current?.updatedAt}`}
+                node={nodes.current}
+                isAnimating={isAnimating}
+                isExpanded={isCardExpanded}
+                onExpandChange={setIsCardExpanded}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Navigation Hints */}
+        <NavigationHints
+          isCardExpanded={isCardExpanded}
+          lastSwipeDirection={lastSwipeDirection}
+          nodes={{
+            similar: nodes.similar,
+            deep: nodes.deep,
+            related: nodes.related,
+          }}
+          canGoBack={canGoBack}
+        />
       </div>
     </div>
   );
 }
-
-// Improved TopicCard component
-const TopicCard = ({
-  node,
-  type,
-  onClick,
-  isMain = false,
-  disabled = false,
-}: {
-  node: Node | null;
-  type: "SIMILAR" | "RELATED" | "DEEP" | "MAIN";
-  onClick: () => void;
-  isMain?: boolean;
-  disabled?: boolean;
-}) => {
-  // Determine card styling based on type
-  const cardStyles = {
-    MAIN: "bg-primary border-primary-foreground text-primary-foreground",
-    SIMILAR:
-      "bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200",
-    RELATED:
-      "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800 text-green-900 dark:text-green-200",
-    DEEP: "bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-200",
-  };
-
-  const titleByType = {
-    MAIN: "Current Topic",
-    SIMILAR: "Similar Topic",
-    RELATED: "Related Topic",
-    DEEP: "Deeper Dive",
-  };
-
-  return (
-    <div
-      className={`p-4 rounded-lg shadow-md border-2 ${cardStyles[type]}
-                  ${!isMain && !disabled ? "cursor-pointer hover:shadow-lg transform hover:scale-[1.02] transition-all" : ""}
-                  ${disabled ? "opacity-70 cursor-not-allowed" : ""}
-                  h-full flex flex-col`}
-      onClick={!disabled && !isMain ? onClick : undefined}
-    >
-      <div className="text-xs font-medium mb-2 opacity-80">
-        {titleByType[type]}
-      </div>
-      <h3 className="text-lg font-semibold mb-2 line-clamp-2">
-        {node?.title || `No ${type.toLowerCase()} topic available`}
-      </h3>
-      <p className="text-sm flex-grow line-clamp-4 opacity-90">
-        {node?.summary || "Content will appear here when available."}
-      </p>
-
-      {!isMain && !disabled && (
-        <div className="mt-3 text-xs font-medium">Click to navigate</div>
-      )}
-    </div>
-  );
-};

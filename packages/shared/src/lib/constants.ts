@@ -11,6 +11,7 @@ export enum MessageType {
   MAP_DATA = "map_data",
   MAP_BRANCHES = "map_branches",
   GET_MAP_BRANCHES = "get_map_branches",
+  NODE_UPDATED = "NODE_UPDATED",
 
   // navigation
   NAVIGATE = "navigate",

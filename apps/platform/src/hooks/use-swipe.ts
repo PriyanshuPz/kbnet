@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useSwipeable } from "react-swipeable";
 
 interface SwipeGestureProps {
@@ -7,6 +7,7 @@ interface SwipeGestureProps {
   onSwipedLeft: () => void;
   onSwipedRight: () => void;
   onSwipedUp: () => void;
+  isExpanded?: boolean;
 }
 
 export const useSwipeGestures = ({
@@ -14,89 +15,105 @@ export const useSwipeGestures = ({
   onSwipedLeft,
   onSwipedRight,
   onSwipedUp,
+  isExpanded = false,
 }: SwipeGestureProps) => {
+  const [swipeDirection, setSwipeDirection] = useState<string | null>(null);
+  const [lastSwipeDirection, setLastSwipeDirection] = useState<string | null>(
+    null
+  );
   const [isAnimating, setIsAnimating] = useState(false);
-  const [swipeDirection, setSwipeDirection] = useState<
-    "up" | "down" | "left" | "right" | null
-  >(null);
+  const [lastSwipeTime, setLastSwipeTime] = useState(0);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const SWIPE_COOLDOWN = 5000; // 5 seconds cooldown
+  const canSwipe = useCallback(() => {
+    const now = Date.now();
+    return now - lastSwipeTime >= SWIPE_COOLDOWN;
+  }, [lastSwipeTime]);
 
-  // Animation helper - now works better with Framer Motion
-  const animateTransition = (
-    callback: () => void,
-    direction: "up" | "down" | "left" | "right"
-  ) => {
-    // Set the direction first so Framer Motion can use it for exit animation
-    setSwipeDirection(direction);
-    setIsAnimating(true);
+  // Add cooldown timer effect
+  useEffect(() => {
+    if (!lastSwipeTime) return;
 
-    // Allow time for exit animation
-    setTimeout(() => {
-      // Execute navigation callback
-      callback();
+    const interval = setInterval(() => {
+      const remaining = Math.max(
+        0,
+        SWIPE_COOLDOWN - (Date.now() - lastSwipeTime)
+      );
+      setCooldownRemaining(remaining);
 
-      // After a brief delay, clear animation state
-      setTimeout(() => {
-        setIsAnimating(false);
-        // Don't clear swipeDirection immediately to let the entry animation complete
-        // It will be reset on the next swipe
-      }, 600);
+      if (remaining === 0) {
+        clearInterval(interval);
+      }
     }, 100);
-  };
+
+    return () => clearInterval(interval);
+  }, [lastSwipeTime]);
+
+  const handleSwipe = useCallback(
+    (dir: string, callback: () => void) => {
+      if (!canSwipe()) {
+        console.warn("Swipe cooldown active, ignoring swipe");
+        return;
+      }
+      const now = Date.now();
+      const MAX_SWIPE_DURATION = 500; // Maximum time in milliseconds for a swipe
+      if (isExpanded) {
+        // When expanded, require double swipe within 300ms
+        if (
+          lastSwipeDirection === dir &&
+          now - lastSwipeTime < MAX_SWIPE_DURATION
+        ) {
+          callback();
+          setLastSwipeTime(0);
+          setLastSwipeDirection(null);
+        } else {
+          setLastSwipeTime(now);
+          setLastSwipeDirection(dir);
+        }
+      } else {
+        // When not expanded, single swipe is enough
+        callback();
+      }
+    },
+    [isExpanded, lastSwipeTime, lastSwipeDirection, canSwipe]
+  );
+
   const handlers = useSwipeable({
     trackTouch: true,
     trackMouse: true,
-    // onSwipedDown,
-    // onSwipedLeft,
-    // onSwipedRight,
-    // onSwipedUp,
+    preventScrollOnSwipe: !isExpanded, // Allow scrolling when expanded
+    delta: 10, // Minimum distance in pixels before a swipe starts
+    swipeDuration: 500, // Maximum time in milliseconds for a swipe
     onSwiping: (eventData) => {
       if (isAnimating) return;
-      const { dir } = eventData;
-      switch (dir) {
-        case "Up":
-          setSwipeDirection("up");
-          break;
-        case "Down":
-          setSwipeDirection("down");
-          break;
-        case "Left":
-          setSwipeDirection("left");
-          break;
-        case "Right":
-          setSwipeDirection("right");
-          break;
-        default:
-          setSwipeDirection(null);
-          break;
-      }
+      setSwipeDirection(eventData.dir.toLowerCase() as any);
     },
     onSwiped: (eventData) => {
       if (isAnimating) return;
 
-      const { dir } = eventData;
-      switch (dir) {
+      switch (eventData.dir) {
         case "Up":
-          animateTransition(onSwipedUp, "up");
+          handleSwipe("Up", onSwipedUp);
           break;
         case "Down":
-          animateTransition(onSwipedDown, "down");
+          handleSwipe("Down", onSwipedDown);
           break;
         case "Left":
-          animateTransition(onSwipedLeft, "left");
+          handleSwipe("Left", onSwipedLeft);
           break;
         case "Right":
-          animateTransition(onSwipedRight, "right");
-          break;
-        default:
+          handleSwipe("Right", onSwipedRight);
           break;
       }
     },
-    preventScrollOnSwipe: true,
   });
 
   return {
-    isAnimating,
-    swipeDirection,
     handlers,
+    swipeDirection,
+    isAnimating,
+    lastSwipeDirection,
+    canSwipe,
+    cooldownRemaining,
   };
 };

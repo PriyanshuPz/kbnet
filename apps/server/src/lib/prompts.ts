@@ -12,10 +12,9 @@ Write a clear, simple explanation of "${query}" that a complete beginner could u
 Generate curiosity-driven questions that naturally build from basic to more interesting concepts:
 
 Required question types:
-1. One "What is..." or "How does..." foundation question
-2. One real-world application question
-3. One "Why should I care..." relevance question
-4. 1-2 intriguing exploration questions
+1. intriguing exploration questions
+2. philosophical or future-oriented questions
+3. Historical or contextual questions
 
 **Background Context:**
 ${formatKbData(kb_context)}
@@ -26,11 +25,6 @@ ${formatKbData(kb_context)}
 - Spark curiosity without overwhelming
 - Questions should feel like natural next steps
 
-**Example question formats:**
-- "How is ${query} used in everyday life?"
-- "Why do people find ${query} important?"
-- "What would happen if ${query} didn't exist?"
-- "What's surprising about ${query}?"
 
 Focus on making the topic approachable and exciting for someone just starting their learning journey.`;
 

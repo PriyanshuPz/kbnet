@@ -6,6 +6,7 @@ import {
 } from "@/routes";
 import { NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
+
 export async function middleware(req: NextRequest) {
   const { nextUrl } = req;
   const session = getSessionCookie(req);

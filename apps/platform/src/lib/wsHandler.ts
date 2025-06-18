@@ -87,6 +87,51 @@ export async function wsHandler(
         state.setState("idle");
         break;
       }
+      case MessageType.NODE_UPDATED: {
+        const { nodeId, title, summary, generated, updatedAt } = payload as {
+          nodeId: string;
+          title: string;
+          summary: string;
+          generated: boolean;
+          updatedAt: any;
+        };
+        const state = useGlobal.getState();
+
+        // Update the appropriate node in the state
+        if (state.deepNode?.id === nodeId) {
+          state.setDeepNode({
+            ...state.deepNode,
+            title,
+            summary,
+            generated,
+            updatedAt: new Date(),
+          });
+        } else if (state.relatedNode?.id === nodeId) {
+          state.setRelatedNode({
+            ...state.relatedNode,
+            title,
+            summary,
+            generated,
+            updatedAt: new Date(),
+          });
+        } else if (state.similarNode?.id === nodeId) {
+          state.setSimilarNode({
+            ...state.similarNode,
+            title,
+            summary,
+            generated,
+            updatedAt: new Date(),
+          });
+        }
+        // Show a subtle toast notification when content is ready
+        if (generated) {
+          toast.success("New content is ready!", {
+            duration: 2000,
+            position: "bottom-right",
+          });
+        }
+        break;
+      }
 
       default:
         console.warn(`Unknown message type: ${type}`);

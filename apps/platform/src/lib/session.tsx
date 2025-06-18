@@ -23,6 +23,7 @@ export const sessionHelpers = {
     currentPathBranchId: string
   ) => {
     const state = useGlobal.getState();
+
     state.setState("navigating");
     state.setError(null);
 

@@ -60,7 +60,7 @@ interface GlobalState {
   similarNode: Node | null;
   setSimilarNode: (node: Node | null) => void;
   hasNodeInDirection: (direction: "UP" | "LEFT" | "RIGHT") => boolean;
-
+  getNodeInDirection: (direction: "UP" | "LEFT" | "RIGHT") => Node | null;
   // Branches
   branches: Branch[];
   currentBranchId: string | null;
@@ -166,13 +166,26 @@ export const useGlobal = create<GlobalState>((set, get) => ({
     const state = get();
     switch (direction) {
       case "UP":
-        return !!state.deepNode;
+        return state.deepNode ? state.deepNode.generated : false;
       case "LEFT":
-        return !!state.similarNode;
+        return state.currentNode ? state.currentNode.generated : false;
       case "RIGHT":
-        return !!state.relatedNode;
+        return state.relatedNode ? state.relatedNode.generated : false;
       default:
         return false;
+    }
+  },
+  getNodeInDirection: (direction) => {
+    const state = get();
+    switch (direction) {
+      case "UP":
+        return state.deepNode;
+      case "LEFT":
+        return state.currentNode;
+      case "RIGHT":
+        return state.relatedNode;
+      default:
+        return null;
     }
   },
 

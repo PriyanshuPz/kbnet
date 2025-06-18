@@ -78,6 +78,10 @@ export default class WSMessageHandler {
             },
             ws,
           });
+          await getUserStats({
+            userId,
+            ws,
+          });
           break;
         }
 
