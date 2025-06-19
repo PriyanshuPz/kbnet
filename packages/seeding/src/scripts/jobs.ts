@@ -46,7 +46,7 @@ class Jobs {
           ) as d
           WHERE id = d.id;
         )
-        EVERY 20 MINUTES
+        EVERY 5 MINUTES
         IF (SELECT COUNT(*) > 0 FROM ${MindsDBConfig.PENDING_SUMMARY_VIEW_NAME} WHERE status in ('PENDING','IN_PROGRESS'));
         `);
 

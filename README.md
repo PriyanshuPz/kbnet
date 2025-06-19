@@ -1,86 +1,112 @@
 [![wakatime](https://wakatime.com/badge/user/a4c237dc-fe02-47f0-97b5-c25292afe1cf/project/ffe875ce-f33d-45ec-81d8-dade826b4901.svg)](https://wakatime.com/badge/user/a4c237dc-fe02-47f0-97b5-c25292afe1cf/project/ffe875ce-f33d-45ec-81d8-dade826b4901)
 
-# Turborepo starter
+## KbNet Overview
 
-This Turborepo starter is maintained by the Turborepo core team.
+<div align="center">
+  <img src="assets/kb.png" alt="KbNet Logo" width="500" />
+  
+</div>
 
-## Using this example
+KBNet is an interactive learning platform that creates dynamic, AI-powered knowledge maps for users to explore topics in an engaging and intuitive way. The project uses MindsDB for AI capabilities and follows a modern web architecture.
 
-Run the following command:
+## Core Features
 
-```sh
-npx create-turbo@latest
-```
+### 1. Knowledge Map Exploration
 
-## What's inside?
+- Users can create personalized knowledge maps starting from any topic
+- Interactive navigation using swipe gestures (UP/DOWN/LEFT/RIGHT)
+- Three types of topic relationships:
+  - DEEP: More detailed exploration of current topic
+  - RELATED: Connected but different concepts
+  - SIMILAR: Alternative approaches or perspectives
 
-This Turborepo includes the following packages/apps:
+### 2. AI-Powered Content Generation
 
-### Apps and Packages
+- Uses `MindsDB` integration with Gemini-2.0-flash model
+- Dynamically generates:
+  - Topic summaries
+  - Related concepts
+  - Learning paths
+- Knowledge base (`KB_NAME`) for contextual information
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### 3. Progress Tracking
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+- User stats and achievements system
+- XP-based progression:
+  - Start map: 50 XP
+  - Visit node: 5 XP
+  - Return to node: 2 XP
+  - Daily streak bonus: 20 XP
+- Badges for accomplishments
+- Streak tracking system
 
-### Utilities
+### 4. Map Summaries
 
-This Turborepo has some additional tools already setup for you:
+- AI-generated summaries of exploration paths
+- Journal-style narratives of learning journeys
+- 24-hour cooldown between summary generations
+- Status tracking (PENDING/IN_PROGRESS/COMPLETED/FAILED)
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+## Technical Architecture
 
-### Build
+### Frontend
 
-To build all apps and packages, run the following command:
+- Built with Next.js
+- Located in platform
+- Features:
+  - Interactive map visualization
+  - Progress tracking dashboard
+  - User achievements display
+  - Summary generation interface
 
-```
-cd my-turborepo
-pnpm build
-```
+### Backend
 
-### Develop
+- Node.js server in server
+- Key controllers:
+  - Map generation and navigation
+  - User statistics tracking
+  - Achievement system
+  - Summary generation
 
-To develop all apps and packages, run the following command:
+### Database Schema
 
-```
-cd my-turborepo
-pnpm dev
-```
+Main tables:
 
-### Remote Caching
+- Maps: User's learning journeys
+- Nodes: Individual topics
+- Navigation Steps: User's exploration path
+- Node Relationships: Topic connections
+- Map Summaries: Generated learning narratives
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+### AI Integration
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+- MindsDB for AI processing
+- Multiple data sources:
+  - Wikipedia
+  - HackerNews
+  - YouTube
+- Custom prompts for different node types
+- Specialized summary generation agent
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+## Developer Features
 
-```
-cd my-turborepo
-npx turbo login
-```
+- Turborepo monorepo setup
+- TypeScript throughout
+- ESLint and Prettier configuration
+- Remote caching support
+- Shared component library
+- Development and production environment configurations
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## Project Status
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+The project appears to be actively maintained by Priyanshu Verma, with ongoing development and improvements. It's part of the Quira Quest initiative, aimed at creating innovative AI-powered educational tools.
 
-```
-npx turbo link
-```
+## Notable Technical Decisions
 
-## Useful Links
+1. Use of MindsDB for AI processing
+2. Monorepo architecture with shared packages
+3. Real-time WebSocket updates for user interactions
+4. Separation of platform and server applications
+5. TypeScript for type safety across the codebase
 
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+This project represents a sophisticated implementation of AI-powered educational technology, focusing on interactive and personalized learning experiences.
