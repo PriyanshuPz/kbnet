@@ -1,5 +1,5 @@
 import { prisma } from "@kbnet/db";
-import { MindsDBConfig, SUMMARY_AGENT_PROMPT } from "@kbnet/shared";
+import { MindsDBConfig } from "@kbnet/shared";
 import { connectMindsDB, runMindsDBQuery } from "../lib/mindsdb";
 
 export async function generateMapSummary(mapId: string) {
@@ -18,7 +18,7 @@ export async function generateMapSummary(mapId: string) {
     const query = await runMindsDBQuery(`
       SELECT answer
       FROM ${MindsDBConfig.SUMMARY_AGENT_NAME}
-      WHERE question = '${SUMMARY_AGENT_PROMPT(map.id, map.initialQuery).replaceAll(`'`, `''`)}'
+      WHERE question = 'Generate a summary for the map with ID: ${mapId}'
       LIMIT 1;
     `);
 

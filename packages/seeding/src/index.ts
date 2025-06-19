@@ -3,6 +3,7 @@ import datasources from "./scripts/datasources";
 import kb from "./scripts/kb";
 import agents from "./scripts/agents";
 import { connectMindsDB } from "./lib/mindsdb";
+import jobs from "./scripts/jobs";
 
 dotenv.config();
 
@@ -11,6 +12,8 @@ async function seed() {
     // Connect to MindsDB instance
     await connectMindsDB();
 
+    await jobs.createPendingSummaryView();
+    await jobs.createSummaryGenerationJob();
     await datasources.createDatasource();
     await kb.createKB();
     await agents.createAgent();

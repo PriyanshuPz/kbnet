@@ -2,18 +2,57 @@ import MindsDB from "mindsdb-js-sdk";
 import { MindsDBConfig } from "@kbnet/shared";
 
 class Jobs {
+  async createPendingSummaryView() {
+    try {
+      const view = await MindsDB.SQL.runQuery(`
+        CREATE VIEW IF NOT EXISTS ${MindsDBConfig.PENDING_SUMMARY_VIEW_NAME} AS (
+          SELECT
+          id,
+          map_id,
+          CONCAT('Summarize the map with ID: ', map_id) AS question,
+          status
+          FROM ${MindsDBConfig.MAPS_SUMMARIES}
+          WHERE status in ('PENDING', 'IN_PROGRESS')
+          ORDER BY requested_at ASC
+        )
+      `);
+
+      console.log("Pending Summary view created successfully:", view.type);
+    } catch (error) {
+      console.error("Error creating Pending Summary view:", error);
+      throw error;
+    }
+  }
+
   async createSummaryGenerationJob() {
     try {
       const job = await MindsDB.SQL.runQuery(`
         CREATE JOB IF NOT EXISTS ${MindsDBConfig.SUMMARY_JOB_NAME} AS (
+          UPDATE appdb_ds.map_summaries SET status = 'IN_PROGRESS'
+          FROM (SELECT * FROM ${MindsDBConfig.PENDING_SUMMARY_VIEW_NAME} LIMIT 1) AS d
+          WHERE id = d.id;
 
+          UPDATE appdb_ds.map_summaries SET status = 'COMPLETED', summary = d.answer, completed_at = NOW()
+          FROM (
+              SELECT
+                  p.id as id,
+                  r.answer as answer
+              FROM ${MindsDBConfig.SUMMARY_AGENT_NAME} as r
+              JOIN (
+                  SELECT id, question FROM ${MindsDBConfig.PENDING_SUMMARY_VIEW_NAME}
+                  WHERE status = 'IN_PROGRESS'
+                  ) as p
+              WHERE r.question = p.question
+          ) as d
+          WHERE id = d.id;
         )
-        EVERY 6 HOUR
+        EVERY 20 MINUTES
+        IF (SELECT COUNT(*) > 0 FROM ${MindsDBConfig.PENDING_SUMMARY_VIEW_NAME} WHERE status in ('PENDING','IN_PROGRESS'));
         `);
 
-      console.log("Hacker News sync job created successfully:", job.type);
+      console.log("Summary sync job created successfully:", job.type);
     } catch (error) {
-      console.error("Error creating Hacker News sync job:", error);
+      console.error("Error creating Summary sync job:", error);
       throw error;
     }
   }

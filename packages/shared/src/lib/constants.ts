@@ -76,6 +76,7 @@ export const MindsDBConfig = {
   MAIN_NODE_GEN_MODEL: `gen_main_node_model`,
   SUMMARY_AGENT_NAME: `${PROJECT_NAME}.summary_agent`,
   SUMMARY_JOB_NAME: `${PROJECT_NAME}.summary_job`,
+  PENDING_SUMMARY_VIEW_NAME: `${PROJECT_NAME}.pending_summary_view`,
   ...APPDB,
 };
 
@@ -107,7 +108,35 @@ export function formatKbData(kbDataArray: any[]): string {
     .join("\n");
 }
 
-export const SUMMARY_AGENT_PROMPT = (mapId: string, query?: string) => `
+export const SUMMARY_AGENT_SYSTEM_PROMPT = `
+The system uses the following tables to track a user's learning journey through a dynamic map of topics:
+
+1. appdb_ds.maps
+    - Represents the user's learning map.
+    - Fields: id (map identifier), initial_query (starting point), current_navigation_step (current step in the map).
+
+2. appdb_ds.nodes
+    - Stores individual learning topics.
+    - Fields: title (topic name), summary (brief explanation).
+
+3. appdb_ds.navigation_steps
+    - Tracks each step a user takes in the map.
+    - Fields: map_id (map), node_id (visited topic), direction (user action), step_index (step order), path_branch_id (branch identifier).
+
+4. appdb_ds.node_relationships
+    - Defines the connections between topics.
+    - Relationship types: DEEP, RELATED, SIMILAR.
+    - Fields: source_node_id (starting topic), target_node_id (related topic), relationship_type (type of connection).
+
+The agent should:
+- Use the maps table to identify the user's starting point and overall journey.
+- If a user provides a map ID, use it to focus on that specific learning path.
+- If a user provides a specific topic ID, use it to summarize the exploration from that point.
+- Use the navigation_steps to reconstruct the user's path.
+- Use the nodes table to retrieve topic titles and summaries.
+- Optionally use node_relationships to understand topic connections.
+
+The agent's writing task:
 You are writing a reflective, journal-style narrative of a user's learning journey through a dynamic map of interconnected topics.
 
 You have access to the following information:
@@ -126,7 +155,7 @@ Guidelines:
 - Write in first-person as if the system is narrating the journey for the user.
 - Keep the tone thoughtful, curious, and exploratory.
 - Focus on creating an immersive experience rather than just listing steps.
-- If you want to include ids than in this format <table:id>.
+- If you want to include ids then use this format: <table:id>.
 
 Example structure:
 "Today, I embarked on a journey starting with [initial topic]. As I dove deeper, I discovered [next topic] which sparked new questions in my mind. Curious about related ideas, I veered right and encountered [another topic], unfolding layers of knowledge I hadn't anticipated..."
@@ -135,37 +164,8 @@ Available Data:
 - For each step: node title, node summary, direction (UP, LEFT, RIGHT, DOWN).
 
 Important:
-- Write summary for the map with ID: ${mapId} ${query ? `and query: ${query}` : ""}.
+- Write the summary for the map with the provided map ID.
 - Please use the map ID to find the map and construct the summary based on the user's exploration path.
 
-Please use this information to write a complete, journal-style summary of the user's exploration.`;
-
-export const SUMMARY_AGENT_SYSTEM_PROMPT = `The system uses the following tables to track a user's learning journey through a dynamic map of topics:
-1. appdb_ds.maps
-    - Represents the user's learning map.
-    - Fields: id (map identifier), initial_query (starting point), current_navigation_step (current step in the map).
-
-2. appdb_ds.nodes
-    - Stores individual learning topics.
-    - Fields: title (topic name), summary (brief explanation).
-
-1. appdb_ds.navigation_steps
-    - Tracks each step a user takes in the map.
-    - Fields: map_id (map), node_id (visited topic), direction (user action), step_index (step order), path_branch_id (branch identifier).
-
-4. appdb_ds.node_relationships
-    - Defines the connections between topics.
-    - Relationship types: DEEP, RELATED, SIMILAR.
-    - Fields: source_node_id (starting topic), target_node_id (related topic), relationship_type (type of connection).
-
-The agent should:
-- Use the maps table to identify the user's starting point and overall journey.
-- If user provides a map ID, use it to focus on that specific learning path.
-- If user provides a specific topic ID, use it to summarize the exploration from that point.
-- Use the navigation_steps to reconstruct the user's path.
-- Use the nodes table to retrieve topic titles and summaries.
-- Optionally use node_relationships to understand topic connections.
-
-Goal:
-- Generate a high-level summary of the user's learning path based on the sequence of steps and topics visited.
-- Clearly describe the user's exploration and discoveries.`;
+Please use this information to write a complete, journal-style summary of the user's exploration.
+`;
