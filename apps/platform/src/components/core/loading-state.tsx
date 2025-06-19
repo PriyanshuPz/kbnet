@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Loader2, Network, Sparkles, Brain } from "lucide-react";
 import { motion } from "framer-motion";
 import Brand from "./brand";
+import Link from "next/link";
 
 // Array of loading messages to display
 const loadingMessages = [
@@ -16,6 +17,7 @@ const loadingMessages = [
 
 export function LoadingState() {
   const [messageIndex, setMessageIndex] = useState(0);
+  const [showTimeout, setShowTimeout] = useState(false);
 
   // Rotate through loading messages
   useEffect(() => {
@@ -23,6 +25,14 @@ export function LoadingState() {
       setMessageIndex((prev) => (prev + 1) % loadingMessages.length);
     }, 2500);
     return () => clearInterval(interval);
+  }, []);
+
+  // Show timeout message after 4 seconds
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setShowTimeout(true);
+    }, 4000);
+    return () => clearInterval(timeoutId);
   }, []);
 
   return (
@@ -91,6 +101,23 @@ export function LoadingState() {
             {loadingMessages[messageIndex]}
           </p>
         </motion.div>
+
+        {/* Timeout message */}
+        {showTimeout && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-xs text-muted-foreground/80 space-x-1"
+          >
+            <span>Taking longer than usual?</span>
+            <Link
+              href="/auth/logout?redirect=/auth"
+              className="text-primary hover:underline cursor-pointer"
+            >
+              Logout and login
+            </Link>
+          </motion.div>
+        )}
       </motion.div>
     </div>
   );

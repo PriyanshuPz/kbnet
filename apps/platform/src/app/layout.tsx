@@ -35,7 +35,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <WSProvider>{children}</WSProvider>
-          <Toaster position="top-right" />
+          <Toaster
+            position="bottom-center"
+            richColors
+            visibleToasts={1}
+            swipeDirections={["bottom", "top", "left", "right"]}
+          />
         </ThemeProvider>
       </body>
     </html>

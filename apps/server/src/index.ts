@@ -22,7 +22,7 @@ app.use("*", async (c, next) => {
   if (!session) {
     c.set("user", null);
     c.set("session", null);
-    return next();
+    return c.text("Unauthorized: Invalid session", 401);
   }
 
   c.set("user", session.user);
@@ -65,6 +65,11 @@ app.get(
           return;
         }
         handler.handle(c, evt, ws);
+      },
+      onError(evt, ws) {
+        console.error("WebSocket error:", evt.type, evt);
+
+        // handler.handleError(evt, ws);
       },
     };
   })

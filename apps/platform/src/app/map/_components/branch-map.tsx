@@ -12,6 +12,7 @@ import {
   X,
   Maximize2,
   Minimize2,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -32,11 +33,14 @@ export const BranchMinimap = () => {
 
   // Fetch branches on component mount
   useEffect(() => {
+    refetchBranches();
+  }, [map.id]);
+
+  async function refetchBranches() {
     if (map.id) {
       sessionHelpers.getMapBranches(map.id);
     }
-  }, [map.id]);
-
+  }
   // Track branch diversion information
   const branchDivergenceInfo = branches.reduce(
     (acc, branch) => {
@@ -100,10 +104,7 @@ export const BranchMinimap = () => {
         <Tooltip>
           <TooltipTrigger asChild>
             <div
-              className={cn(
-                "group flex items-center my-3 transition-all",
-                isHovered ? "scale-105" : ""
-              )}
+              className={cn("group flex items-center my-3 transition-all")}
               onMouseEnter={() => setHoveredStep(step.id)}
               onMouseLeave={() => setHoveredStep(null)}
             >
@@ -113,8 +114,7 @@ export const BranchMinimap = () => {
                   "relative flex-shrink-0 w-4 h-4 rounded-full border-2 z-10 transition-all",
                   isCurrentStep
                     ? "bg-primary border-primary-foreground"
-                    : "bg-background",
-                  isHovered ? "shadow-[0_0_8px_rgba(0,0,0,0.3)]" : ""
+                    : "bg-background"
                 )}
                 style={{ borderColor: color }}
                 onClick={() => navigateToBranch(branchId, step.id)}
@@ -128,8 +128,7 @@ export const BranchMinimap = () => {
               {step.direction && (
                 <div
                   className={cn(
-                    "ml-2 flex items-center justify-center w-5 h-5 rounded-full border",
-                    isHovered ? "bg-accent" : ""
+                    "ml-2 flex items-center justify-center w-5 h-5 rounded-full border"
                   )}
                 >
                   {step.direction === "LEFT" && (
@@ -180,7 +179,6 @@ export const BranchMinimap = () => {
                   )}
                 </p>
               )}
-              <p className="text-xs">Click to navigate to this point</p>
             </div>
           </TooltipContent>
         </Tooltip>
@@ -246,6 +244,15 @@ export const BranchMinimap = () => {
               )}
             </div>
             <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => refetchBranches()}
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+              </Button>
+
               <Button
                 variant="ghost"
                 size="icon"

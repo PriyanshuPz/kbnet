@@ -22,7 +22,7 @@ export default function AuthPage() {
     try {
       await authClient.signIn.social({
         provider: "github",
-        callbackURL: "/",
+        callbackURL: "/pad",
       });
     } catch (error) {
       console.error("Sign in error:", error);
@@ -32,8 +32,8 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="absolute top-4 left-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6">
+      <div className="absolute top-6 left-6">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/" className="flex items-center gap-1">
             <ArrowLeft className="h-4 w-4" />
@@ -43,17 +43,17 @@ export default function AuthPage() {
       </div>
 
       <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1 text-center">
+        <CardHeader className="space-y-2 text-center p-6">
           <CardTitle className="text-2xl font-bold tracking-tight">
             Welcome to KbNet
           </CardTitle>
           <CardDescription>Sign in to your account to continue</CardDescription>
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-4">
+        <CardContent className="flex flex-col gap-6 pb-6">
           <Button
             variant="outline"
-            className="w-full relative py-6 flex gap-2"
+            className="w-full relative py-6 flex gap-3"
             onClick={handleGitHubSignIn}
             disabled={isLoading}
           >
@@ -66,7 +66,7 @@ export default function AuthPage() {
           </Button>
         </CardContent>
 
-        <CardFooter className="flex justify-center text-sm text-muted-foreground">
+        <CardFooter className="flex justify-center text-sm text-muted-foreground px-6 pb-6">
           <span>
             By continuing, you agree to our{" "}
             <Link

@@ -17,9 +17,16 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const session = authClient.getSession();
+
   function connect() {
     if (state.socket) {
       console.warn("WebSocket already connected");
+      return;
+    }
+
+    if (!session) {
+      console.warn("No session found, cannot connect WebSocket");
       return;
     }
 
@@ -36,7 +43,7 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
     };
     ws.onerror = (err) => {
       state.setError("WebSocket error");
-      // console.error("WebSocket error:", err);
+      console.log("WebSocket error:", err);
     };
     ws.onmessage = async (e) => {
       await wsHandler(e, ws, state, router);
@@ -48,7 +55,6 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
     if (!state.socket) {
       connect();
     } else if (state.socket.readyState === WebSocket.CLOSED) {
-      state.setConnectionStatus("connecting");
       connect();
     }
   }, [connect, state.socket]);

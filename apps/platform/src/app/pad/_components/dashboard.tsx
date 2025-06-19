@@ -19,6 +19,7 @@ import Link from "next/link";
 import CreateMapInput from "@/components/core/create-map-input";
 import Brand from "@/components/core/brand";
 import { ThemeToggle } from "@/components/core/theme-toggle";
+import MapCard from "./map-card";
 
 const cardStyle =
   "border-2 border-black bg-card relative after:absolute after:inset-0 after:border-2 after:border-black after:translate-x-1 after:translate-y-1 after:bg-muted after:-z-10 after:transition-transform hover:after:translate-x-2 hover:after:translate-y-2";
@@ -97,7 +98,7 @@ export function Dashboard({ user, stats, maps }: DashboardData) {
               <h3 className="text-2xl font-bold">{stats.badges.length}</h3>
             </div>
           </div>
-          <div className="mt-4 flex gap-1.5">
+          <div className="mt-4 flex gap-1.5 flex-wrap">
             {stats.badges.slice(0, 3).map((badge, i) => (
               <Badge
                 key={i}
@@ -129,42 +130,16 @@ export function Dashboard({ user, stats, maps }: DashboardData) {
         <ScrollArea className="min-h-[200px] max-h-[400px]">
           <div className="p-4 space-y-3">
             {maps.map((map) => (
-              <Card
+              <MapCard
                 key={map.id}
-                className="p-3 border-2 border-black hover:bg-muted/50 transition-colors cursor-pointer"
-              >
-                <Link href={`/map/${map.id}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Activity
-                        className={
-                          map.isActive
-                            ? "text-green-500"
-                            : "text-muted-foreground"
-                        }
-                        size={16}
-                      />
-                      <div>
-                        <h3 className="font-medium text-sm">{map.title}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          {map.currentStep
-                            ? `Step ${map.currentStep.stepIndex}: ${map.currentStep.node.title}`
-                            : "Not started"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock size={14} className="text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(map.lastActive), {
-                          addSuffix: true,
-                        })}
-                      </span>
-                      <ChevronRight size={16} />
-                    </div>
-                  </div>
-                </Link>
-              </Card>
+                map={{
+                  id: map.id,
+                  title: map.title,
+                  isActive: map.isActive,
+                  lastActiveAt: map.lastActive,
+                  currentStep: map.currentStep,
+                }}
+              />
             ))}
           </div>
         </ScrollArea>

@@ -70,7 +70,6 @@ export async function wsHandler(
           className: "bg-card text-card-foreground border-2 border-black",
           duration: 5000,
           icon: confetti ? "🎉" : undefined,
-          position: "top-right",
         });
         // state.showNotification({
         //   message,
@@ -88,13 +87,9 @@ export async function wsHandler(
         break;
       }
       case MessageType.NODE_UPDATED: {
-        const { nodeId, title, summary, generated, updatedAt } = payload as {
-          nodeId: string;
-          title: string;
-          summary: string;
-          generated: boolean;
-          updatedAt: any;
-        };
+        const { node, currentNode } = payload as any;
+
+        const { nodeId, title, summary, generated, updatedAt } = node;
         const state = useGlobal.getState();
 
         // Update the appropriate node in the state
@@ -105,7 +100,7 @@ export async function wsHandler(
             summary,
             generated,
             updatedAt: new Date(),
-          });
+          } as any);
         } else if (state.relatedNode?.id === nodeId) {
           state.setRelatedNode({
             ...state.relatedNode,
@@ -113,7 +108,7 @@ export async function wsHandler(
             summary,
             generated,
             updatedAt: new Date(),
-          });
+          } as any);
         } else if (state.similarNode?.id === nodeId) {
           state.setSimilarNode({
             ...state.similarNode,
@@ -121,15 +116,23 @@ export async function wsHandler(
             summary,
             generated,
             updatedAt: new Date(),
-          });
+          } as any);
         }
+
+        state.setCurrentNode({
+          ...currentNode,
+          title: currentNode.title,
+          summary: currentNode.summary,
+          generated: currentNode.generated,
+          updatedAt: new Date(),
+        } as any);
         // Show a subtle toast notification when content is ready
         if (generated) {
-          toast.success("New content is ready!", {
-            duration: 2000,
-            position: "bottom-right",
+          toast.success(`Read ${title}`, {
+            duration: 500,
           });
         }
+        state.setState("idle");
         break;
       }
 

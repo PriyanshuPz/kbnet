@@ -1,5 +1,8 @@
+import { useGlobal } from "@/store/global-state";
+import { Node } from "@kbnet/db";
 import { useState, useCallback, useEffect } from "react";
 import { useSwipeable } from "react-swipeable";
+import { toast } from "sonner";
 
 interface SwipeGestureProps {
   threshold?: number;
@@ -17,6 +20,7 @@ export const useSwipeGestures = ({
   onSwipedUp,
   isExpanded = false,
 }: SwipeGestureProps) => {
+  const { similarNode, relatedNode, deepNode } = useGlobal();
   const [swipeDirection, setSwipeDirection] = useState<string | null>(null);
   const [lastSwipeDirection, setLastSwipeDirection] = useState<string | null>(
     null
@@ -24,13 +28,14 @@ export const useSwipeGestures = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const [lastSwipeTime, setLastSwipeTime] = useState(0);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
-  const SWIPE_COOLDOWN = 5000; // 5 seconds cooldown
-  const canSwipe = useCallback(() => {
-    const now = Date.now();
-    return now - lastSwipeTime >= SWIPE_COOLDOWN;
-  }, [lastSwipeTime]);
+  const SWIPE_COOLDOWN = 5000;
 
-  // Add cooldown timer effect
+  // Simple function to check cooldown
+  const canSwipe = () => {
+    return Date.now() - lastSwipeTime >= SWIPE_COOLDOWN;
+  };
+
+  // Cooldown timer effect
   useEffect(() => {
     if (!lastSwipeTime) return;
 
@@ -41,49 +46,66 @@ export const useSwipeGestures = ({
       );
       setCooldownRemaining(remaining);
 
-      if (remaining === 0) {
-        clearInterval(interval);
-      }
+      if (remaining === 0) clearInterval(interval);
     }, 100);
 
     return () => clearInterval(interval);
   }, [lastSwipeTime]);
 
-  const handleSwipe = useCallback(
-    (dir: string, callback: () => void) => {
-      if (!canSwipe()) {
-        console.warn("Swipe cooldown active, ignoring swipe");
-        return;
-      }
-      const now = Date.now();
-      const MAX_SWIPE_DURATION = 500; // Maximum time in milliseconds for a swipe
-      if (isExpanded) {
-        // When expanded, require double swipe within 300ms
-        if (
-          lastSwipeDirection === dir &&
-          now - lastSwipeTime < MAX_SWIPE_DURATION
-        ) {
-          callback();
-          setLastSwipeTime(0);
-          setLastSwipeDirection(null);
-        } else {
-          setLastSwipeTime(now);
-          setLastSwipeDirection(dir);
-        }
-      } else {
-        // When not expanded, single swipe is enough
+  const handleSwipe = (dir: string, callback: () => void) => {
+    if (!canSwipe()) {
+      toast("Relax a bit, please wait before swiping again.", {
+        position: "bottom-center",
+      });
+      return;
+    }
+
+    const WAIT_MESSAGE = "Chill, You read too fast, please wait a bit...";
+
+    // Check node generation state directly from current values
+    if (dir === "Left" && !similarNode?.generated) {
+      toast.info(WAIT_MESSAGE, {
+        position: "bottom-center",
+      });
+      return;
+    }
+    if (dir === "Right" && !relatedNode?.generated) {
+      toast.info(WAIT_MESSAGE, {
+        position: "bottom-center",
+      });
+      return;
+    }
+    if (dir === "Up" && !deepNode?.generated) {
+      toast.info(WAIT_MESSAGE, {
+        position: "bottom-center",
+      });
+      return;
+    }
+
+    const now = Date.now();
+    if (isExpanded) {
+      // Double swipe check for expanded mode
+      if (lastSwipeDirection === dir && now - lastSwipeTime < 500) {
         callback();
+        setLastSwipeTime(0);
+        setLastSwipeDirection(null);
+      } else {
+        setLastSwipeTime(now);
+        setLastSwipeDirection(dir);
       }
-    },
-    [isExpanded, lastSwipeTime, lastSwipeDirection, canSwipe]
-  );
+    } else {
+      // Single swipe for non-expanded mode
+      setLastSwipeTime(now);
+      callback();
+    }
+  };
 
   const handlers = useSwipeable({
     trackTouch: true,
     trackMouse: true,
-    preventScrollOnSwipe: !isExpanded, // Allow scrolling when expanded
-    delta: 10, // Minimum distance in pixels before a swipe starts
-    swipeDuration: 500, // Maximum time in milliseconds for a swipe
+    preventScrollOnSwipe: !isExpanded,
+    delta: 10,
+    swipeDuration: 500,
     onSwiping: (eventData) => {
       if (isAnimating) return;
       setSwipeDirection(eventData.dir.toLowerCase() as any);

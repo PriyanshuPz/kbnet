@@ -49,11 +49,15 @@ const LLM_MODEL = "gemini-2.0-flash";
 const ML_ENGINE_NAME = `google_ml_engine`;
 const HACKERNEWS_SYNC_JOB = `${PROJECT_NAME}.hackernews_sync_job`;
 const APPDB_DS = "appdb_ds";
-const KMAP_TB = `${APPDB_DS}.public.k_maps`;
-const KMAP_NODE_TB = `${APPDB_DS}.public.k_map_nodes`;
-const KMAP_EDGE_TB = `${APPDB_DS}.public.k_map_edges`;
-const KMAP_TIMELINE_TB = `${APPDB_DS}.public.k_map_timeline`;
 const KMAP_NODE_TRIGGER = `gen_main_node_trigger`;
+
+const APPDB = {
+  MAPS: `${APPDB_DS}.public.maps`,
+  NODES: `${APPDB_DS}.public.nodes`,
+  NAVIGATION_STEPS: `${APPDB_DS}.public.navigation_steps`,
+  NODE_RELATIONSHIPS: `${APPDB_DS}.public.node_relationships`,
+  MAPS_SUMMARIES: `${APPDB_DS}.public.maps_summaries`,
+};
 
 export const MindsDBConfig = {
   HACKERNEWS_DS: "hackernews_ds",
@@ -67,13 +71,11 @@ export const MindsDBConfig = {
   ML_ENGINE_NAME,
   HACKERNEWS_SYNC_JOB,
   APPDB_DS,
-  KMAP_TB,
-  KMAP_NODE_TB,
-  KMAP_EDGE_TB,
-  KMAP_TIMELINE_TB,
   KMAP_NODE_TRIGGER,
   MAIN_NODE_TRR: KMAP_NODE_TRIGGER,
   MAIN_NODE_GEN_MODEL: `gen_main_node_model`,
+  SUMMARY_AGENT_NAME: `${PROJECT_NAME}.summary_agent`,
+  ...APPDB,
 };
 
 export function formatKbData(kbDataArray: any[]): string {
@@ -103,3 +105,55 @@ export function formatKbData(kbDataArray: any[]): string {
     })
     .join("\n");
 }
+
+export const SUMMARY_AGENT_PROMPT = `
+You are writing a reflective, journal-style narrative of a user's learning journey through a dynamic map of interconnected topics.
+
+You have access to the following information:
+- The sequence of topics the user visited.
+- The summary of each topic.
+- The direction the user chose at each step (UP: deeper exploration, LEFT: similar topic, RIGHT: related topic, DOWN: backtracking).
+
+Your task:
+- Reconstruct the user's journey as an engaging personal journal entry.
+- Describe the user's curiosity, decisions, and discoveries at each step.
+- Use rich, descriptive language to make the user feel like they are re-living their exploration.
+- Highlight how one topic led to another and what was uncovered along the way.
+- Reflect on why the user might have chosen certain directions (you may creatively infer motivations based on the exploration pattern).
+
+Guidelines:
+- Write in first-person as if the system is narrating the journey for the user.
+- Keep the tone thoughtful, curious, and exploratory.
+- Focus on creating an immersive experience rather than just listing steps.
+- If you want to include ids than in this format <table:id>.
+
+Example structure:
+"Today, I embarked on a journey starting with [initial topic]. As I dove deeper, I discovered [next topic] which sparked new questions in my mind. Curious about related ideas, I veered right and encountered [another topic], unfolding layers of knowledge I hadn't anticipated..."
+
+Available Data:
+- For each step: node title, node summary, direction (UP, LEFT, RIGHT, DOWN).
+
+Please use this information to write a complete, journal-style summary of the user's exploration.`;
+
+export const SUMMARY_AGENT_SYSTEM_PROMPT = `The system uses the following tables to track a user's learning journey through a dynamic map of topics:
+
+1. appdb_ds.nodes
+    - Stores individual learning topics.
+    - Fields: title (topic name), summary (brief explanation).
+
+2. appdb_ds.navigation_steps
+    - Tracks each step a user takes in the map.
+    - Fields: nodeId (visited topic), direction (user action), stepIndex (step order), pathBranchId (branch identifier).
+
+3. appdb_ds.node_relationships
+    - Defines the connections between topics.
+    - Relationship types: DEEP, RELATED, SIMILAR.
+
+The agent should:
+- Use the navigation_steps to reconstruct the user's path.
+- Use the nodes table to retrieve topic titles and summaries.
+- Optionally use node_relationships to understand topic connections.
+
+Goal:
+- Generate a high-level summary of the user's learning path based on the sequence of steps and topics visited.
+- Clearly describe the user's exploration and discoveries.`;

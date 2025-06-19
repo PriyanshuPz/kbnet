@@ -14,8 +14,11 @@ services:
     ports:
       - "47334:47334"
       - "47335:47335"
+      - "47337:47337"
     volumes:
       - mindsdb_data:/root/mdb_storage
+    environment:
+      - MINDSDB_APIS=http,mysql,mongodb,postgres,mcp
     depends_on:
       - db
 

@@ -72,6 +72,7 @@ export async function createNewMap({ userId, data, ws }: NewMapPayload) {
     });
 
     const result = await prisma.$transaction(async (tx) => {
+      const summaryId = generateId("summary");
       const newMap = await prisma.map.create({
         data: {
           id: generateId("map"),
@@ -79,6 +80,13 @@ export async function createNewMap({ userId, data, ws }: NewMapPayload) {
           initialQuery: data.query,
           isActive: true,
           startedAt: new Date(),
+          latestSummaryId: summaryId,
+          latestSummary: {
+            create: {
+              id: summaryId,
+              generatedBy: "SYSTEM",
+            },
+          },
         },
       });
 
@@ -627,11 +635,14 @@ async function generateNodeContent(
 
     // Broadcast the update to all connected clients
     handler.sendToSession(mapId, MessageType.NODE_UPDATED, {
-      nodeId: updatedNode.id,
-      title: updatedNode.title,
-      summary: updatedNode.summary,
-      generated: true,
-      updatedAt: updatedNode.updatedAt,
+      node: {
+        nodeId: updatedNode.id,
+        title: updatedNode.title,
+        summary: updatedNode.summary,
+        generated: true,
+        updatedAt: updatedNode.updatedAt,
+      },
+      currentNode: mainNode,
     });
   } catch (error) {
     console.error(`Error generating content for ${type} node:`, error);

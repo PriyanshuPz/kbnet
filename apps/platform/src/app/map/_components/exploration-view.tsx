@@ -35,7 +35,7 @@ const slideVariants = {
 export default function ExplorationView() {
   const params = useParams();
   const id = params.id as string;
-  const { error, map, state } = useGlobal();
+  const { error, map } = useGlobal();
   const { handleNavigate, handleGoBack, canGoBack, nodes } = useMapNavigation();
 
   const [isCardExpanded, setIsCardExpanded] = React.useState(false);
@@ -77,9 +77,9 @@ export default function ExplorationView() {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-background overflow-hidden">
       {cooldownRemaining > 0 && (
-        <div className="absolute top-4 right-4 z-50">
+        <div className="absolute top-2 z-[1000]">
           <div className="paper-effect px-3 py-1 rounded-lg">
-            <span className="text-sm font-medium text-white">
+            <span className="text-sm font-medium">
               Cooldown: {`${Math.ceil(cooldownRemaining / 1000)}s`}
             </span>
           </div>

@@ -88,7 +88,7 @@
   --accent: oklch(0.25 0 0);
   --accent-foreground: oklch(0.95 0 0);
   --destructive: oklch(0.7 0.191 22.216);
-  --border: oklch(0.2 0 0); /* Light border for dark paper */
+  --border: oklch(0 0 0); /* Light border for dark paper */
   --input: oklch(1 0 0 / 0.2);
   --ring: oklch(0.95 0 0);
 

@@ -95,7 +95,6 @@ export async function getPadData(): Promise<DashboardData | null> {
         },
       },
     });
-
     if (!user) throw new Error("User not found");
 
     const maps = user.maps.map((map) => ({
@@ -142,6 +141,27 @@ export async function getPadData(): Promise<DashboardData | null> {
       maps,
     };
   } catch (error) {
+    console.error("Error fetching pad data:", error);
+    return null;
+  }
+}
+
+export async function getMapSummaryData(mapId: string) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(), // you need to pass the headers object.
+    });
+    if (!session) throw new Error("No session found");
+
+    const summary = await prisma.mapSummary.findUnique({
+      where: { mapId: mapId },
+    });
+
+    if (!summary) throw new Error("Map summary not found");
+
+    return summary;
+  } catch (error) {
+    console.error("Error fetching map summary data:", error);
     return null;
   }
 }

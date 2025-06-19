@@ -6,7 +6,7 @@ export function Footer() {
       <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} KBNet. All rights reserved.
+            © {new Date().getFullYear()} KbNet. All rights reserved.
           </p>
         </div>
         <div className="flex items-center gap-6">

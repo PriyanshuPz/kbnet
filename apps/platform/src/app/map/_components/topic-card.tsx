@@ -1,9 +1,11 @@
 import { Node } from "@kbnet/db";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Copy, Heart, Share2, Minimize2 } from "lucide-react";
+import { Copy, Heart, Share2, Minimize2, RefreshCw } from "lucide-react";
 import { MarkdownText } from "@/components/map/mark";
 import { cn } from "@/lib/utils";
+import { useGlobal } from "@/store/global-state";
+import { useRouter } from "next/navigation";
 
 interface TopicCardProps {
   node: Node | null;
@@ -19,7 +21,8 @@ export const TopicCard = ({
   onExpandChange,
 }: TopicCardProps) => {
   const [isLiked, setIsLiked] = useState(false);
-
+  // Subscribe to setters and node states
+  const router = useRouter();
   const handleCopy = () => {
     if (node) {
       navigator.clipboard.writeText(`${node.title}\n\n${node.summary}`);
@@ -31,27 +34,39 @@ export const TopicCard = ({
     // Could open a modal with sharing options
   };
 
-  const handleAIOptions = () => {
-    // Implement AI options
-    // Could open a modal with AI actions like:
-    // - Generate related questions
-    // - Explain in detail
-    // - Create study notes
-  };
+  async function onRefresh() {
+    if (node && !node.generated) {
+      router.refresh();
+      const s = useGlobal.getState();
+      console.log("Refreshing content for node:", s);
+    }
+  }
 
   return (
     <motion.div
+      key={node?.content?.length}
       layout
       className={`paper-effect p-6 rounded-xl mt-3 ${
         isAnimating ? "pointer-events-none" : ""
       }`}
     >
-      <div className="relative">
+      <div key={node?.title} className="relative">
         {/* Content */}
         <div className="space-y-4">
-          <h3 className="text-2xl font-bold text-center tracking-wide">
-            {node?.title || "No topic available"}
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-2xl font-bold tracking-wide">
+              {node?.title || "No topic available"}
+            </h3>
+            {node && !node.generated && (
+              <button
+                onClick={onRefresh}
+                className="p-2 rounded-lg hover:bg-muted transition-colors"
+                title="Refresh content"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
+            )}
+          </div>
 
           <div
             className={cn(
