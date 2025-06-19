@@ -27,6 +27,8 @@ export const secondaryFonts = Delicious_Handrawn({
   variable: "--font-heading",
 });
 
+export const SERVER_URL =
+  process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:8000";
 export const WS_SERVER_URL =
   process.env.NEXT_PUBLIC_WS_SERVER_URL || "ws://localhost:8000/ws";
 

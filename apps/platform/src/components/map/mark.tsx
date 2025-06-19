@@ -13,6 +13,7 @@ import { SyntaxHighlighter } from "./shiki-highlighter";
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import Link from "next/link";
 
 interface MarkdownTextProps {
   content: string;
@@ -20,12 +21,17 @@ interface MarkdownTextProps {
   truncate?: boolean;
   maxLength?: number;
 }
+// Custom NodeLink component
+interface NodeLinkProps {
+  id: string;
+}
 
-export function MarkdownText({
-  content,
-  className,
-  truncate = false,
-}: MarkdownTextProps) {
+const NodeLink: React.FC<NodeLinkProps> = ({ id }) => {
+  return (
+    <span className="text-blue-600 underline cursor-pointer">Node: {id}</span>
+  );
+};
+export function MarkdownText({ content, className }: MarkdownTextProps) {
   return (
     <ReactMarkdown components={defaultComponents} remarkPlugins={[remarkGfm]}>
       {content}
@@ -35,6 +41,7 @@ export function MarkdownText({
 
 const defaultComponents = memoizeMarkdownComponents({
   SyntaxHighlighter: SyntaxHighlighter,
+
   h1: ({ className, ...props }) => (
     <h1
       className={cn(
@@ -89,15 +96,6 @@ const defaultComponents = memoizeMarkdownComponents({
   p: ({ className, ...props }) => (
     <p
       className={cn("mb-5 mt-5 leading-7 first:mt-0 last:mb-0", className)}
-      {...props}
-    />
-  ),
-  a: ({ className, ...props }) => (
-    <a
-      className={cn(
-        "text-primary font-medium underline underline-offset-4",
-        className
-      )}
       {...props}
     />
   ),
@@ -166,10 +164,7 @@ const defaultComponents = memoizeMarkdownComponents({
   ),
   pre: ({ className, ...props }) => (
     <pre
-      className={cn(
-        "overflow-x-auto rounded-b-lg bg-black p-4 text-white",
-        className
-      )}
+      className={cn("overflow-x-auto rounded-b-lg p-4 text-white", className)}
       {...props}
     />
   ),
@@ -178,11 +173,39 @@ const defaultComponents = memoizeMarkdownComponents({
     return (
       <code
         className={cn(
-          !isCodeBlock && "bg-muted rounded border font-semibold",
+          !isCodeBlock && "rounded border font-semibold",
           className
         )}
         {...props}
       />
+    );
+  },
+
+  a: ({ className, ...props }) => {
+    const node = props.children?.toString() || "";
+    const isNode = node.startsWith("nodes");
+    if (isNode) {
+      const nodeId = node.substring(6); // Extract node ID from the URL
+      return (
+        <Link
+          className="text-primary font-medium underline underline-offset-4"
+          href={`/nodes/${nodeId}`}
+        >
+          [Node]
+        </Link>
+      );
+    }
+
+    return (
+      <a
+        className={cn(
+          "text-primary font-medium underline underline-offset-4",
+          className
+        )}
+        {...props}
+      >
+        {props.children}
+      </a>
     );
   },
 });

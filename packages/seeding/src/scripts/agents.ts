@@ -6,13 +6,18 @@ const LLM_API_KEY = process.env.GEMINI_API_KEY;
 class Agents {
   async createAgent() {
     try {
+      await MindsDB.SQL.runQuery(`
+        DROP AGENT ${MindsDBConfig.SUMMARY_AGENT_NAME};
+      `);
+
       let query = await MindsDB.SQL.runQuery(`
       CREATE AGENT IF NOT EXISTS ${MindsDBConfig.SUMMARY_AGENT_NAME}
       USING
-        model = '${MindsDBConfig.MAIN_NODE_GEN_MODEL}',
+        model = '${MindsDBConfig.LLM_MODEL}',
         google_api_key = '${LLM_API_KEY}',
         include_knowledge_bases = ['${MindsDBConfig.KB_NAME}'],
         include_tables = [
+          '${MindsDBConfig.MAPS}',
           '${MindsDBConfig.NODES}',
           '${MindsDBConfig.NAVIGATION_STEPS}',
           '${MindsDBConfig.NODE_RELATIONSHIPS}'

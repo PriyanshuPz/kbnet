@@ -30,7 +30,7 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const ws = new WebSocket(WS_SERVER_URL);
+    const ws = new WebSocket(`${WS_SERVER_URL}/ws`);
     ws.onopen = () => {
       state.setConnectionStatus("connected");
       state.setError(null);

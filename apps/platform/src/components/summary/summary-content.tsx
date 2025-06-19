@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MarkdownText } from "@/components/map/mark";
 import { useState } from "react";
+import { Progress } from "@/components/ui/progress";
 import { MapSummary } from "@kbnet/db";
-import { Progress } from "../ui/progress";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
@@ -14,44 +16,55 @@ interface SummaryContentProps {
   initialData: MapSummary | null;
 }
 
-const demo = `Okay, I have the data for the user's learning journey along the path ~~branch-oy5lr0kpnor2sqq18tpjqofq~~. Now I can write the journal-style narrative.
-
-Here's the narrative:
-
-"Today, I embarked on a fascinating journey, starting with the very building blocks of everything around us: **Atom**. It's incredible to think that everything is made of these tiny LEGO-like bricks!
-
-Driven by curiosity, I decided to delve **UP** into **Atom Interactions**. It's amazing how these tiny particles don't just sit still; they bump, bounce, and even stick together to form molecules. I wondered what happens when these interactions go beyond simple connections.
-
-Veering **LEFT**, I stumbled upon **Nuclear Reactions**. This was a whole new level! Instead of just bumping or sticking, the very core of atoms can change, releasing immense energy. It's mind-blowing to think about the power contained within these tiny structures.
-
-Intrigued, I went **UP** to **Beyond Similarity: Tracing the Evolution of Ideas**. This felt like stepping into a vast library of interconnected thoughts. It's not just about finding similar topics, but about tracing how ideas evolve and influence different fields.
-
-Continuing **UP**, I explored **Emergence: A Cross-Disciplinary Journey**. This concept, where complex systems exhibit properties that their individual components don't, took me through philosophy, biology, computer science, and even the social sciences. It's amazing how one idea can manifest in so many different ways.
-
-My journey continued **UP** to **The US in Space: Navigating Leadership, Collaboration, and a New Paradigm**. This was a shift from the abstract to the practical, examining the US's role in space exploration and the balance between leadership and collaboration.
-
-Driven by this, I went **UP** to **Artemis Unveiled: The US Balancing Act Between Leadership and Collaboration**. This exploration of NASA's Artemis program highlighted the complexities of international partnerships and the growing influence of private space companies.
-
-I then went **UP** to **The Adaptive Learning Journey: A Personalized Path to Mastery**. This was a fascinating look at how learning can be tailored to individual needs, like a GPS for the brain constantly recalibrating the route to mastery.
-
-Finally, I went **UP** to **Decoding the Algorithms: The Engine of Adaptive Learning**. This was a deep dive into the algorithms that power adaptive learning, understanding how they analyze learner behavior and personalize the learning experience.
-
-What a journey! From the fundamental building blocks of matter to the cutting edge of adaptive learning, I've uncovered layers of knowledge I hadn't anticipated. It's amazing how one topic can lead to another, unfolding a rich tapestry of interconnected ideas."`;
-
 export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
-  const [summaryData, setSummaryData] = useState(initialData);
+  const summaryData = initialData;
+  const router = useRouter();
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const hoursToNextGeneration = summaryData
+    ? Math.max(
+        0,
+        24 -
+          Math.floor(
+            (new Date().getTime() -
+              new Date(summaryData.requestedAt).getTime()) /
+              (1000 * 60 * 60)
+          )
+      )
+    : 0;
+
+  function canGenerateSummary() {
+    if (!summaryData) return true; // No summary data means we can generate
+    const lastGenerated = summaryData.requestedAt;
+    if (!lastGenerated) return true; // No previous generation means we can generate
+    const now = new Date();
+    const hoursSinceLast =
+      (now.getTime() - new Date(lastGenerated).getTime()) / (1000 * 60 * 60);
+    return hoursSinceLast >= 24; // Allow generation if 24 hours have passed
+  }
 
   const handleGenerateSummary = async () => {
     try {
       setIsGenerating(true);
-      const response = await fetch(`/api/maps/${mapId}/summary/generate`, {
+      const url = `/server/api/maps/trigger/summary?mapId=${mapId}`;
+      const response = await fetch(url, {
+        credentials: "include",
         method: "POST",
       });
-      const data = await response.json();
-      setSummaryData(data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate summary");
+      }
+      toast("Generating summary...", {
+        description: "This might take a few minutes.",
+        duration: 5000,
+      });
+      router.refresh();
     } catch (error) {
-      console.error("Error generating summary:", error);
+      console.log("Error generating summary:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to generate summary"
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -80,7 +93,7 @@ export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
   );
 
   return (
-    <div className="space-y-6 h-full w-full">
+    <div className="space-y-6">
       <div className="flex items-center space-x-4 mb-6">
         <Link
           href="/pad"
@@ -97,7 +110,7 @@ export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
           <span className="text-foreground font-medium">Summary</span>
         </div>
       </div>
-      <Card className="p-6 h-full">
+      <Card className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Map Summary</h1>
           <div className="flex items-center gap-4">
@@ -107,9 +120,15 @@ export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
             </div>
             <Button
               onClick={handleGenerateSummary}
-              disabled={isGenerating || isInProgress}
+              disabled={isGenerating || isInProgress || !canGenerateSummary()}
             >
-              {isGenerating ? "Generating..." : "Generate Summary"}
+              {isGenerating
+                ? "Generating..."
+                : isInProgress
+                  ? "In Progress"
+                  : canGenerateSummary()
+                    ? "Generate Summary"
+                    : `Wait For ${hoursToNextGeneration} hours`}
             </Button>
           </div>
         </div>
@@ -123,24 +142,20 @@ export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
           </div>
         )}
 
-        {/* <MarkdownText content={summaryData.summary} /> */}
-        {!summaryData?.summary ? (
+        {summaryData?.summary ? (
           <div className="space-y-6">
-            <MarkdownText content={demo} />
+            <MarkdownText content={summaryData.summary.replaceAll("`", "")} />
             <div className="text-sm text-muted-foreground">
               <p>
-                Requested:{" "}
-                {new Date(
-                  summaryData?.requestedAt || new Date()
-                ).toLocaleString()}
+                Requested: {new Date(summaryData.requestedAt).toLocaleString()}
               </p>
-              {summaryData?.completedAt && (
+              {summaryData.completedAt && (
                 <p>
                   Completed:{" "}
                   {new Date(summaryData.completedAt).toLocaleString()}
                 </p>
               )}
-              <p>Generated by: {summaryData?.generatedBy.toLowerCase()}</p>
+              <p>Generated by: {summaryData.generatedBy.toLowerCase()}</p>
             </div>
           </div>
         ) : (

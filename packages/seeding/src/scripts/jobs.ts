@@ -1,15 +1,14 @@
 import MindsDB from "mindsdb-js-sdk";
-import { HACKERNEWS_STORY_FEED_QUERY } from "../lib/queries";
 import { MindsDBConfig } from "@kbnet/shared";
 
 class Jobs {
-  async createHackernewsSyncJob() {
+  async createSummaryGenerationJob() {
     try {
       const job = await MindsDB.SQL.runQuery(`
-        CREATE JOB IF NOT EXISTS ${MindsDBConfig.HACKERNEWS_SYNC_JOB} AS (
-        ${HACKERNEWS_STORY_FEED_QUERY(10)}
+        CREATE JOB IF NOT EXISTS ${MindsDBConfig.SUMMARY_JOB_NAME} AS (
+
         )
-        EVERY 1 HOUR
+        EVERY 6 HOUR
         `);
 
       console.log("Hacker News sync job created successfully:", job.type);

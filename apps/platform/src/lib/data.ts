@@ -165,3 +165,30 @@ export async function getMapSummaryData(mapId: string) {
     return null;
   }
 }
+
+export async function getNodeData(nodeId: string) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(), // you need to pass the headers object.
+    });
+    if (!session) throw new Error("No session found");
+
+    const node = await prisma.node.findUnique({
+      where: { id: nodeId },
+    });
+
+    if (!node) throw new Error("Node not found");
+
+    return {
+      id: node.id,
+      title: node.title,
+      content: node.summary,
+      createdAt: node.createdAt,
+      updatedAt: node.updatedAt,
+      isProcessed: node.isProcessed,
+    };
+  } catch (error) {
+    console.error("Error fetching node data:", error);
+    return null;
+  }
+}

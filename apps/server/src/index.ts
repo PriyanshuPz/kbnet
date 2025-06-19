@@ -1,9 +1,11 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { createNodeWebSocket } from "@hono/node-ws";
-import WSMessageHandler, { handler } from "./handler";
+import { handler } from "./handler";
 import { auth } from "@kbnet/shared";
 import dotenv from "dotenv";
+import router from "./api";
 
 dotenv.config();
 
@@ -15,6 +17,14 @@ const app = new Hono<{
 }>();
 
 const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
+
+app.use(
+  "/api/*",
+  cors({
+    origin: ["http://localhost:3000"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  })
+);
 
 app.use("*", async (c, next) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
@@ -33,6 +43,8 @@ app.use("*", async (c, next) => {
 app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
+
+app.route("/api", router);
 
 app.get(
   "/ws",

@@ -15,14 +15,14 @@ class MakeDatasource {
   async createDatasource(): Promise<void> {
     try {
       // Create datasources
-      let _yt = await this.youtubeDS();
-      let _hn = await this.hackernewsDS();
+      // let _yt = await this.youtubeDS();
+      // let _hn = await this.hackernewsDS();
       let _mwiki = await this.mediawikiDS();
       let _web = await this.webDS();
       let _appdb = await this.appDB();
       console.log("Datasources:", {
-        youtube: _yt,
-        hackernews: _hn,
+        // youtube: _yt,
+        // hackernews: _hn,
         mediawiki: _mwiki,
         web: _web,
         appdb: _appdb,
