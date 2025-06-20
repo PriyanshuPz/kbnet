@@ -40,11 +40,12 @@ const restrictedUsernames = [
 ];
 
 const ENABLE_SIGNUP = process.env.ENABLE_SIGNUP === "true";
-
+const BETTER_AUTH_SECRET = process.env.BETTER_AUTH_SECRET;
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  secret: BETTER_AUTH_SECRET,
   socialProviders: {
     github: {
       clientId: process.env.GITHUB_CLIENT_ID || "",
