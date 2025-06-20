@@ -1,9 +1,9 @@
 "use server";
 
 import { prisma } from "@kbnet/db";
-import { auth } from "@kbnet/shared";
 import { calculateXpForLevel } from "@kbnet/shared";
 import { headers } from "next/headers";
+import { auth } from "./auth";
 export interface User {
   id: string;
   name: string | null;
