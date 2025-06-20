@@ -56,7 +56,7 @@ export const auth = betterAuth({
         username: profile.login.replaceAll("-", "_"),
         displayName: profile.name || profile.login,
       }),
-      // disableSignUp: !ENABLE_SIGNUP,
+      disableSignUp: !ENABLE_SIGNUP,
     },
   },
   plugins: [
