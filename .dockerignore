@@ -1,0 +1,9 @@
+assets/*
+.turbo/*
+node_modules/*
+**/.next/*
+**/node_modules/*
+**/dist/*
+**/generated/*
+**/.env
+.env

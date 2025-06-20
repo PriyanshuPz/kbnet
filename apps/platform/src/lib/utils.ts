@@ -24,6 +24,7 @@ export function formatDate(dateString: string): string {
 
 export const secondaryFonts = Delicious_Handrawn({
   weight: "400",
+  subsets: ["latin"],
   variable: "--font-heading",
 });
 

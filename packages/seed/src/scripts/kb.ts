@@ -1,16 +1,16 @@
-import MindsDB from "mindsdb-js-sdk";
 import { MindsDBConfig } from "@kbnet/shared";
+import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
 
 const LLM_API_KEY = process.env.GEMINI_API_KEY;
 
 class Kb {
   async createKB() {
     try {
-      await MindsDB.SQL.runQuery(`
+      await runMindsDBQuery(`
       CREATE PROJECT IF NOT EXISTS ${MindsDBConfig.PROJECT_NAME}
     `);
 
-      let query = await MindsDB.SQL.runQuery(`
+      let query = await runMindsDBQuery(`
       CREATE KNOWLEDGE_BASE IF NOT EXISTS ${MindsDBConfig.KB_NAME}
       USING
         embedding_model = {

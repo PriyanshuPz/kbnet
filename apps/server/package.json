@@ -1,27 +1,31 @@
 {
-  "name": "server",
+  "name": "@kbnet/server",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "build": "bun build ./src/index.ts --outfile=./dist/bin --target=node --format=esm --banner='#!/usr/bin/env node'",
+    "start": "chmod 700 ./dist/bin && ./dist/bin",
+    "seed": "tsx src/lib/seed.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.19",
     "@hono/node-server": "^1.14.4",
     "@hono/node-ws": "^1.1.7",
     "@kbnet/db": "*",
+    "@kbnet/seed": "*",
     "@kbnet/shared": "*",
     "@paralleldrive/cuid2": "^2.2.2",
+    "mindsdb-js-sdk": "^2.3.2",
+    "better-auth": "^1.2.9",
     "ai": "^4.3.16",
     "dotenv": "^16.5.0",
     "fast-xml-parser": "^5.2.5",
     "hono": "^4.7.11",
-    "mindsdb-js-sdk": "^2.3.2",
     "zod": "^3.25.64"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
+    "esbuild": "^0.25.5",
     "tsx": "^4.7.1",
     "typescript": "^5.8.3"
   }

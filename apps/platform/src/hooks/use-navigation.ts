@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useState } from "react";
 import { sessionHelpers } from "@/lib/session";
 import { useGlobal } from "@/store/global-state";
-import { Node } from "@kbnet/db";
+import { Node } from "@kbnet/db/types";
 
 export function useNavigation() {
   const { map, currentNode, deepNode, relatedNode, similarNode, state } =

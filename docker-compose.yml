@@ -9,6 +9,8 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - kbnet
   mindsdb:
     image: mindsdb/mindsdb:latest
     ports:
@@ -17,11 +19,26 @@ services:
       - "47337:47337"
     volumes:
       - mindsdb_data:/root/mdb_storage
-    environment:
-      - MINDSDB_APIS=http,mysql,mongodb,postgres,mcp
     depends_on:
       - db
+    networks:
+      - kbnet
+
+  # server:
+  #   image: kbnet-server:latest
+  #   depends_on:
+  #     - mindsdb
+  #     - db
+  #   ports:
+  #     - "8000:8000"
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - kbnet
 
 volumes:
   mindsdb_data:
   db_data:
+
+networks:
+  kbnet:

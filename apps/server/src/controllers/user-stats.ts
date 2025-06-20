@@ -2,7 +2,7 @@ import { prisma } from "@kbnet/db";
 import { evaluateAndAwardBadges, sendNotification } from "./achivements";
 import { handler } from "../handler";
 import { MessageType } from "@kbnet/shared";
-import { calculateXpForLevel } from "@kbnet/shared/src/lib/utils";
+import { calculateXpForLevel } from "@kbnet/shared";
 
 const XP_ON_START_MAP = 50;
 const XP_ON_VISIT_NODE = 5;

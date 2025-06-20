@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { connectMindsDB } from "./src/lib/mindsdb";
+import { connectMindsDB } from "./lib/mindsdb";
 import MindsDB from "mindsdb-js-sdk";
 import { MindsDBConfig } from "@kbnet/shared";
 

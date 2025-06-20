@@ -1,5 +1,4 @@
 import { useGlobal } from "@/store/global-state";
-import { Node } from "@kbnet/db";
 import { useState, useCallback, useEffect } from "react";
 import { useSwipeable } from "react-swipeable";
 import { toast } from "sonner";

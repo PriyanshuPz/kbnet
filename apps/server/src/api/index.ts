@@ -1,4 +1,5 @@
-import { prisma, type MapSummary } from "@kbnet/db";
+import { prisma } from "@kbnet/db";
+import { type MapSummary } from "@kbnet/db/types";
 import type { auth } from "@kbnet/shared";
 import { Hono } from "hono";
 import { generateMapSummary } from "../controllers/summary";

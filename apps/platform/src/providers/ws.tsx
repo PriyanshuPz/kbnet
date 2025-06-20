@@ -10,7 +10,7 @@ import { MessageType, pack } from "@kbnet/shared";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
-const paths = ["/auth"];
+const paths = ["/auth", "/", "about", "/terms", "/privacy"];
 
 export function WSProvider({ children }: { children: React.ReactNode }) {
   const state = useGlobal();

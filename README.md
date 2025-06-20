@@ -97,10 +97,6 @@ Main tables:
 - Shared component library
 - Development and production environment configurations
 
-## Project Status
-
-The project appears to be actively maintained by Priyanshu Verma, with ongoing development and improvements. It's part of the Quira Quest initiative, aimed at creating innovative AI-powered educational tools.
-
 ## Notable Technical Decisions
 
 1. Use of MindsDB for AI processing
@@ -110,3 +106,10 @@ The project appears to be actively maintained by Priyanshu Verma, with ongoing d
 5. TypeScript for type safety across the codebase
 
 This project represents a sophisticated implementation of AI-powered educational technology, focusing on interactive and personalized learning experiences.
+
+## Setup Instructions
+
+### Prerequisites
+
+- Node.js (v18 or later)
+- Docker

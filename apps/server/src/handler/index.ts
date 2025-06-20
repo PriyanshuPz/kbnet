@@ -1,6 +1,6 @@
 import { MessageType, pack, unpack } from "@kbnet/shared";
+import { connectMindsDB } from "@kbnet/shared/mindsdb";
 import type { WSContext, WSMessageReceive } from "hono/ws";
-import { connectMindsDB } from "../lib/mindsdb";
 import type { Context } from "hono";
 import {
   createNewMap,

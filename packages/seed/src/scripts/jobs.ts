@@ -1,10 +1,10 @@
-import MindsDB from "mindsdb-js-sdk";
 import { MindsDBConfig } from "@kbnet/shared";
+import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
 
 class Jobs {
   async createPendingSummaryView() {
     try {
-      const view = await MindsDB.SQL.runQuery(`
+      const view = await runMindsDBQuery(`
         CREATE VIEW IF NOT EXISTS ${MindsDBConfig.PENDING_SUMMARY_VIEW_NAME} AS (
           SELECT
           id,
@@ -26,7 +26,7 @@ class Jobs {
 
   async createSummaryGenerationJob() {
     try {
-      const job = await MindsDB.SQL.runQuery(`
+      const job = await runMindsDBQuery(`
         CREATE JOB IF NOT EXISTS ${MindsDBConfig.SUMMARY_JOB_NAME} AS (
           UPDATE appdb_ds.map_summaries SET status = 'IN_PROGRESS'
           FROM (SELECT * FROM ${MindsDBConfig.PENDING_SUMMARY_VIEW_NAME} LIMIT 1) AS d

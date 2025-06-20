@@ -4,10 +4,10 @@ import { cors } from "hono/cors";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { handler } from "./handler";
 import { auth } from "@kbnet/shared";
-import dotenv from "dotenv";
+import { config } from "dotenv";
 import router from "./api";
 
-dotenv.config();
+config();
 
 const app = new Hono<{
   Variables: {
@@ -18,13 +18,15 @@ const app = new Hono<{
 
 const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
-app.use(
-  "/api/*",
-  cors({
-    origin: ["http://localhost:3000"],
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  })
-);
+app.get("/", (c) => {
+  return c.json({
+    message: "Welcome to the KBNet API server",
+    version: "1.0.0",
+    status: "running",
+    uptime: process.uptime().toFixed(2) + " seconds",
+    environment: process.env.NODE_ENV || "development",
+  });
+});
 
 app.use("*", async (c, next) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
@@ -40,9 +42,24 @@ app.use("*", async (c, next) => {
   return next();
 });
 
-app.get("/", (c) => {
-  return c.text("Hello Hono!");
-});
+app.use(
+  "/api/*",
+  cors({
+    origin: (origin, c) => {
+      const envOrigins = process.env.CORS_ORIGIN;
+      const envOrigin = envOrigins
+        ? envOrigins.split(",").map((o) => o.trim())
+        : null;
+      if (Array.isArray(envOrigin) && envOrigin.length > 0) {
+        return envOrigin.includes(origin) ? origin : envOrigin[0];
+      }
+      const knownOrigins = ["https://kbnet.diybuilds.tech"];
+      if (knownOrigins.includes(origin) || !origin) {
+        return origin;
+      }
+    },
+  })
+);
 
 app.route("/api", router);
 
@@ -86,10 +103,13 @@ app.get(
     };
   })
 );
+
+const PORT = parseInt(process.env.PORT || "8000");
 const server = serve(
   {
     fetch: app.fetch,
-    port: 8000,
+    port: PORT,
+    hostname: "0.0.0.0",
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);

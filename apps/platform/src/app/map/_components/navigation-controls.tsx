@@ -1,4 +1,4 @@
-import { Node } from "@kbnet/db";
+import { Node } from "@kbnet/db/types";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,

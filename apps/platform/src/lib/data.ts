@@ -2,7 +2,7 @@
 
 import { prisma } from "@kbnet/db";
 import { auth } from "@kbnet/shared";
-import { calculateXpForLevel } from "@kbnet/shared/src/lib/utils";
+import { calculateXpForLevel } from "@kbnet/shared";
 import { headers } from "next/headers";
 export interface User {
   id: string;
@@ -50,8 +50,9 @@ export interface DashboardData {
 }
 export async function getPadData(): Promise<DashboardData | null> {
   try {
+    const h = await headers();
     const session = await auth.api.getSession({
-      headers: await headers(), // you need to pass the headers object.
+      headers: h, // you need to pass the headers object.
     });
 
     if (!session) throw new Error("No session found");
@@ -148,8 +149,10 @@ export async function getPadData(): Promise<DashboardData | null> {
 
 export async function getMapSummaryData(mapId: string) {
   try {
+    const h = await headers();
+
     const session = await auth.api.getSession({
-      headers: await headers(), // you need to pass the headers object.
+      headers: h,
     });
     if (!session) throw new Error("No session found");
 
@@ -168,8 +171,9 @@ export async function getMapSummaryData(mapId: string) {
 
 export async function getNodeData(nodeId: string) {
   try {
+    const h = await headers();
     const session = await auth.api.getSession({
-      headers: await headers(), // you need to pass the headers object.
+      headers: h, // you need to pass the headers object.
     });
     if (!session) throw new Error("No session found");
 

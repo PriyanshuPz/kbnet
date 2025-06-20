@@ -1,5 +1,5 @@
+import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
 import { DatasourceType, MindsDBConfig } from "@kbnet/shared";
-import { runMindsDBQuery } from "./mindsdb";
 import { FEED_KB_QUERY, parseArxivXML } from "./util";
 import dotenv from "dotenv";
 

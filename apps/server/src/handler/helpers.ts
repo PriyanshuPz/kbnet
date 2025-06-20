@@ -1,4 +1,4 @@
-import { RelationshipType, type Node } from "@kbnet/db";
+import { RelationshipType, type Node } from "@kbnet/db/types";
 
 export const helpers = {
   createContentPrompt(

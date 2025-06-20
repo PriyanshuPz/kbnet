@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Node } from "@kbnet/db";
+import { Node } from "@kbnet/db/types";
 import { useGlobal } from "@/store/global-state";
 import { sessionHelpers } from "@/lib/session";
 

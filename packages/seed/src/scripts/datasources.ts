@@ -1,5 +1,5 @@
-import MindsDB from "mindsdb-js-sdk";
 import { MindsDBConfig } from "@kbnet/shared";
+import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 
@@ -36,7 +36,7 @@ class MakeDatasource {
   // Good for now
   async hackernewsDS(): Promise<RsType> {
     try {
-      const hackernewsDatasource = await MindsDB.SQL.runQuery(`
+      const hackernewsDatasource = await runMindsDBQuery(`
         CREATE DATABASE IF NOT EXISTS ${HACKERNEWS_DS}
           WITH
           ENGINE = 'hackernews'
@@ -51,7 +51,7 @@ class MakeDatasource {
   // Good for now
   async mediawikiDS(): Promise<RsType> {
     try {
-      const mediawikiDatasource = await MindsDB.SQL.runQuery(`
+      const mediawikiDatasource = await runMindsDBQuery(`
         CREATE DATABASE IF NOT EXISTS ${MEDIAWIKI_DS}
           WITH
           ENGINE = 'mediawiki'
@@ -66,7 +66,7 @@ class MakeDatasource {
   // Good for now
   async webDS(): Promise<RsType> {
     try {
-      const webDatasource = await MindsDB.SQL.runQuery(`
+      const webDatasource = await runMindsDBQuery(`
         CREATE DATABASE IF NOT EXISTS ${WEB_DS}
           WITH
           ENGINE = 'web'
@@ -84,7 +84,7 @@ class MakeDatasource {
       if (!YOUTUBE_API_KEY) {
         throw new Error("YOUTUBE_API_KEY is not set in environment variables");
       }
-      const youtubeDatasource = await MindsDB.SQL.runQuery(`
+      const youtubeDatasource = await runMindsDBQuery(`
         CREATE DATABASE IF NOT EXISTS ${YOUTUBE_DS}
           WITH
           ENGINE = 'youtube',
@@ -108,7 +108,7 @@ class MakeDatasource {
         user: process.env.DB_USER || "mindsdb",
         password: process.env.DB_PASSWORD || "mindsdb",
       };
-      const appDBDatasource = await MindsDB.SQL.runQuery(`
+      const appDBDatasource = await runMindsDBQuery(`
         CREATE DATABASE IF NOT EXISTS ${APPDB_DS}
           WITH ENGINE = 'postgres',
           PARAMETERS = {

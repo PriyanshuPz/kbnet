@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { MarkdownText } from "@/components/map/mark";
 import { useState } from "react";
 import { Progress } from "@/components/ui/progress";
-import { MapSummary } from "@kbnet/db";
+import { MapSummary } from "@kbnet/db/types";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";

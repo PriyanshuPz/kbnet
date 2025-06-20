@@ -1,6 +1,6 @@
 import type { WSContext } from "hono/ws";
 import { initiateIngestion } from "./ingestion";
-import { runMindsDBQuery } from "../lib/mindsdb";
+import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
 import { MessageType, MindsDBConfig, pack } from "@kbnet/shared";
 import { generateId, sanitizeSQLValue } from "../lib/util";
 import {
@@ -9,7 +9,8 @@ import {
   RELATED_NODE_PROMPT,
   SIMILAR_NODE_PROMPT,
 } from "../lib/prompts";
-import { prisma, type NavigationStep, type Node } from "@kbnet/db";
+import { type NavigationStep, type Node } from "@kbnet/db/types";
+import { prisma } from "@kbnet/db";
 import { google } from "../lib/ai";
 import { generateObject } from "ai";
 import { z } from "zod";
@@ -28,7 +29,6 @@ interface NewMapPayload extends BasePayload {
 export async function createNewMap({ userId, data, ws }: NewMapPayload) {
   // Ingest data in the background
   // Uncomment this line in production to enable ingestion
-  // initiateIngestion(data.query);
 
   try {
     const kbdata = await runMindsDBQuery(`
@@ -212,6 +212,19 @@ export async function createNewMap({ userId, data, ws }: NewMapPayload) {
     await applyUserStats(userId, "START_MAP");
 
     handler.sendToSession(result.mapId, MessageType.MAP_CREATED, result);
+
+    // Start ingestion in the background
+    const c = await prisma.map.findMany({
+      where: {
+        initialQuery: data.query,
+      },
+    });
+
+    if (c.length === 0) {
+      initiateIngestion(data.query);
+    } else {
+      console.log("Map already exists for this query, skipping ingestion.");
+    }
   } catch (error) {
     console.error("Error creating new map:", error);
     ws.send(

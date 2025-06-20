@@ -8,7 +8,7 @@ import { sessionHelpers } from "@/lib/session";
 import { useGlobal } from "@/store/global-state";
 import { useMapNavigation } from "@/hooks/use-map-navigation";
 import { useSwipeGestures } from "@/hooks/use-swipe";
-import { Node } from "@kbnet/db";
+import { Node } from "@kbnet/db/types";
 import { TopicCard } from "./topic-card";
 import { NavigationHints } from "./navigation-controls";
 import { Gamebar } from "./game-bar";

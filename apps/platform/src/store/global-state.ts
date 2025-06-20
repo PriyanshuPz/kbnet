@@ -1,4 +1,4 @@
-import { Node } from "@kbnet/db";
+import { Node } from "@kbnet/db/types";
 import { UserStats } from "@kbnet/shared";
 import { create } from "zustand";
 

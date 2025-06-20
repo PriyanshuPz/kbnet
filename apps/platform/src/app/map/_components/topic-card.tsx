@@ -1,4 +1,4 @@
-import { Node } from "@kbnet/db";
+import { Node } from "@kbnet/db/types";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Copy, Heart, Share2, Minimize2, RefreshCw } from "lucide-react";

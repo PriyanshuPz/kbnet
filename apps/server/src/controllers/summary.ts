@@ -1,6 +1,6 @@
-import { prisma } from "@kbnet/db";
 import { MindsDBConfig } from "@kbnet/shared";
-import { connectMindsDB, runMindsDBQuery } from "../lib/mindsdb";
+import { connectMindsDB, runMindsDBQuery } from "@kbnet/shared/mindsdb";
+import { prisma } from "@kbnet/db";
 
 export async function generateMapSummary(mapId: string) {
   try {
