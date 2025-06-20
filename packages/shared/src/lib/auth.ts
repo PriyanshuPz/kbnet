@@ -39,6 +39,8 @@ const restrictedUsernames = [
   "adminpanel",
 ];
 
+const ENABLE_SIGNUP = process.env.ENABLE_SIGNUP === "true";
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -54,6 +56,7 @@ export const auth = betterAuth({
         username: profile.login.replaceAll("-", "_"),
         displayName: profile.name || profile.login,
       }),
+      disableSignUp: !ENABLE_SIGNUP,
     },
   },
   plugins: [
