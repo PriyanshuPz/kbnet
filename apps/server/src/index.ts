@@ -3,9 +3,9 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { handler } from "./handler";
-import { auth } from "@kbnet/shared";
 import { config } from "dotenv";
 import router from "./api";
+import { auth } from "./lib/auth";
 
 config();
 
