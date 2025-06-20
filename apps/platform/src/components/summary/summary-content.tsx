@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 interface SummaryContentProps {
   mapId: string;
@@ -20,7 +21,7 @@ export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
   const summaryData = initialData;
   const router = useRouter();
   const [isGenerating, setIsGenerating] = useState(false);
-
+  const { data: sessionData } = authClient.useSession();
   const hoursToNextGeneration = summaryData
     ? Math.max(
         0,
@@ -46,10 +47,17 @@ export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
   const handleGenerateSummary = async () => {
     try {
       setIsGenerating(true);
+      if (!sessionData) {
+        toast.error("You must be logged in to generate a summary.");
+        return;
+      }
+
       const url = `/server/api/maps/trigger/summary?mapId=${mapId}`;
       const response = await fetch(url, {
-        credentials: "include",
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${sessionData.session.token}`,
+        },
       });
       if (!response.ok) {
         const errorData = await response.json();

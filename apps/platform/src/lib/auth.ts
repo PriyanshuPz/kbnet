@@ -2,6 +2,7 @@ import { prisma } from "@kbnet/db";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { username } from "better-auth/plugins";
+import { bearer } from "better-auth/plugins";
 
 const restrictedUsernames = [
   "admin",
@@ -59,6 +60,7 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    bearer(),
     username({
       usernameValidator: (username) => {
         if (restrictedUsernames.includes(username.toLowerCase())) {

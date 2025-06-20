@@ -1,6 +1,7 @@
 import { MindsDBConfig } from "@kbnet/shared";
 import { XMLParser } from "fast-xml-parser";
 import { createId } from "@paralleldrive/cuid2";
+
 export function sanitizeSQLValue(value: any): string {
   if (typeof value === "number") return value.toString();
   if (typeof value === "boolean") return value ? "TRUE" : "FALSE";

@@ -5,14 +5,14 @@ import { createNodeWebSocket } from "@hono/node-ws";
 import { handler } from "./handler";
 import { config } from "dotenv";
 import router from "./api";
-import { auth } from "./lib/auth";
+import { authClient, tokenToSession } from "./lib/auth-client";
 
 config();
 
 const app = new Hono<{
   Variables: {
-    user: typeof auth.$Infer.Session.user | null;
-    session: typeof auth.$Infer.Session.session | null;
+    user: typeof authClient.$Infer.Session.user | null;
+    session: typeof authClient.$Infer.Session.session | null;
   };
 }>();
 
@@ -29,35 +29,33 @@ app.get("/", (c) => {
 });
 
 app.use("*", async (c, next) => {
-  const session = await auth.api.getSession({ headers: c.req.raw.headers });
-
-  if (!session) {
-    c.set("user", null);
-    c.set("session", null);
-    return c.text("Unauthorized: Invalid session", 401);
+  if (c.req.path.startsWith("/ws")) {
+    return next();
   }
 
-  c.set("user", session.user);
-  c.set("session", session.session);
-  return next();
+  try {
+    const authorization = c.req.header("Authorization");
+    if (!authorization) {
+      c.set("user", null);
+      c.set("session", null);
+      throw new Error("Unauthorized: No authorization header provided");
+    }
+    const token = authorization.replace("Bearer ", "").trim();
+
+    await tokenToSession(c, token);
+    return next();
+  } catch (error: any) {
+    return c.json(
+      { error: error.message || "Unauthorized: Invalid token or session" },
+      401
+    );
+  }
 });
 
 app.use(
   "/api/*",
   cors({
-    origin: (origin, c) => {
-      const envOrigins = process.env.CORS_ORIGIN;
-      const envOrigin = envOrigins
-        ? envOrigins.split(",").map((o) => o.trim())
-        : null;
-      if (Array.isArray(envOrigin) && envOrigin.length > 0) {
-        return envOrigin.includes(origin) ? origin : envOrigin[0];
-      }
-      const knownOrigins = ["https://kbnet.diybuilds.tech"];
-      if (knownOrigins.includes(origin) || !origin) {
-        return origin;
-      }
-    },
+    origin: "*", // Allow all origins for API routes
   })
 );
 
@@ -66,17 +64,8 @@ app.route("/api", router);
 app.get(
   "/ws",
   upgradeWebSocket(async (c) => {
-    const headers = c.req.raw.headers;
-    const session = await auth.api.getSession({
-      headers: headers,
-    });
-
-    if (!session) {
-      throw new Error("Unauthorized: Invalid session");
-    }
-
-    c.set("user", session.user);
-    c.set("session", session.session);
+    const token = c.req.query("token");
+    await tokenToSession(c, token);
 
     return {
       onOpen(evt, ws) {

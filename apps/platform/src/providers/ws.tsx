@@ -17,7 +17,7 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const session = authClient.getSession();
+  const session = authClient.useSession();
 
   function connect() {
     if (state.socket) {
@@ -25,12 +25,15 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (!session) {
+    if (!session.data) {
       console.warn("No session found, cannot connect WebSocket");
       return;
     }
+    console.log("Connecting WebSocket...");
 
-    const ws = new WebSocket(`${WS_SERVER_URL}/ws`);
+    const ws = new WebSocket(
+      `${WS_SERVER_URL}/ws?token=${session.data.session.token}`
+    );
     ws.onopen = () => {
       state.setConnectionStatus("connected");
       state.setError(null);

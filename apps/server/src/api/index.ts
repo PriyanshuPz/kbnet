@@ -2,12 +2,12 @@ import { prisma } from "@kbnet/db";
 import { type MapSummary } from "@kbnet/db/types";
 import { Hono } from "hono";
 import { generateMapSummary } from "../controllers/summary";
-import type { auth } from "../lib/auth";
+import { authClient } from "../lib/auth-client";
 
 const router = new Hono<{
   Variables: {
-    user: typeof auth.$Infer.Session.user | null;
-    session: typeof auth.$Infer.Session.session | null;
+    user: typeof authClient.$Infer.Session.user | null;
+    session: typeof authClient.$Infer.Session.session | null;
   };
 }>();
 
@@ -100,6 +100,34 @@ router.post("/maps/trigger/summary", async (c) => {
   } catch (error) {
     console.error("Error in /maps/trigger/summary:", error);
     return c.json({ error: "Failed to trigger map summary" }, 500);
+  }
+});
+
+router.get("status", async (c) => {
+  try {
+    const user = c.get("user");
+    if (!user) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+    const session = c.get("session");
+    if (!session) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+    return c.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        image: user.image,
+      },
+      session: {
+        id: session.id,
+        expiresAt: session.expiresAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error in /status:", error);
+    return c.json({ error: "Failed to get status" }, 500);
   }
 });
 
