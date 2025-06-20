@@ -1,5 +1,5 @@
+import { auth } from "@/lib/auth";
 import { prisma } from "@kbnet/db";
-import { auth } from "@kbnet/shared";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
