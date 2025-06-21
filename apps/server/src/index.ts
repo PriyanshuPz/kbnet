@@ -64,12 +64,24 @@ app.route("/api", router);
 app.get(
   "/ws",
   upgradeWebSocket(async (c) => {
-    const token = c.req.query("token");
-    await tokenToSession(c, token);
     let pingInterval: NodeJS.Timeout;
-
     return {
-      onOpen(evt, ws) {
+      onOpen: async (evt, ws) => {
+        const token = c.req.query("token");
+        try {
+          await tokenToSession(c, token);
+        } catch (error: any) {
+          console.error("WebSocket authentication failed:", error);
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              message: error.message || "Authentication failed",
+            })
+          );
+          clearInterval(pingInterval);
+          ws.close(1008, error.message || "Authentication failed");
+          return;
+        }
         console.log("WebSocket connection opened", evt.type);
         ws.send("Welcome to KBNet WebSocket!");
 
@@ -83,6 +95,8 @@ app.get(
       onClose(evt, ws) {
         console.log("WebSocket connection closed", evt.type);
         clearInterval(pingInterval);
+        c.set("user", null);
+        c.set("session", null);
         handler.cleanUpSocket(ws);
       },
       onMessage: (evt, ws) => {
