@@ -7,3 +7,6 @@ node_modules/*
 **/generated/*
 **/.env
 .env
+cloud/*
+out/*
+.github/*
