@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { handler } from "./handler";
 import { config } from "dotenv";
@@ -8,6 +7,8 @@ import { authClient, tokenToSession } from "./lib/auth-client";
 import { createServer } from "http";
 import { MessageType, pack } from "@kbnet/shared";
 import { serve } from "@hono/node-server";
+import { connectMindsDB, runMindsDBQuery } from "@kbnet/shared/mindsdb";
+import { prisma } from "@kbnet/db";
 
 config();
 
@@ -20,21 +21,41 @@ const app = new Hono<{
 
 const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
-app.get("/", (c) => {
+app.get("/", async (c) => {
+  let isMindsDB = false;
+  let isDB = false;
+  try {
+    const cell = await runMindsDBQuery(`SELECT 1`);
+    console.log("MindsDB cell result:", cell.type);
+    if (cell.type == "table") {
+      isMindsDB = true;
+    } else {
+      isMindsDB = false;
+    }
+  } catch (error) {
+    isMindsDB = false;
+    console.error("Failed to connect to MindsDB");
+  }
+
+  try {
+    isDB = await prisma.$queryRaw`SELECT 1`;
+  } catch (error) {
+    isDB = false;
+    console.error("Failed to check DB connection.");
+  }
+
   return c.json({
     message: "Welcome to the KBNet API server",
     version: "1.0.0",
     status: "running",
+    mindsDB: isMindsDB ? "connected" : "not connected",
+    database: isDB ? "connected" : "not connected",
     uptime: process.uptime().toFixed(2) + " seconds",
-    environment: process.env.NODE_ENV || "development",
+    timestamp: new Date().toISOString(),
   });
 });
 
 app.use("/api/*", async (c, next) => {
-  if (c.req.path.startsWith("/ws")) {
-    return next();
-  }
-
   try {
     const authorization = c.req.header("Authorization");
     if (!authorization) {
@@ -112,8 +133,6 @@ app.get(
 
 const PORT = parseInt(process.env.PORT || "8000");
 
-// const server = createServer(app);
-
 const server = serve(
   {
     fetch: app.fetch,
@@ -127,7 +146,3 @@ const server = serve(
 );
 
 injectWebSocket(server);
-
-// server.listen(PORT, "0.0.0.0", () => {
-//   console.log(`Server running at http://0.0.0.0:${PORT}/`);
-// });

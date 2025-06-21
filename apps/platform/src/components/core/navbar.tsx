@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Brand from "./brand";
+import { cn } from "@/lib/utils";
 
-export function Navbar() {
+export function Navbar({ transparent = true }) {
   return (
-    <header className="w-full border-b-2 border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+    <header
+      className={cn(
+        "w-full sticky top-0 z-50",
+        !transparent &&
+          "border-b-2 border-border bg-background/80 backdrop-blur-sm"
+      )}
+    >
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <Brand />

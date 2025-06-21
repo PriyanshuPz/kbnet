@@ -1,8 +1,9 @@
 import { prisma } from "@kbnet/db";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { username } from "better-auth/plugins";
+import { customSession, username } from "better-auth/plugins";
 import { bearer } from "better-auth/plugins";
+import { getUserById } from "./data";
 
 const restrictedUsernames = [
   "admin",
@@ -68,6 +69,29 @@ export const auth = betterAuth({
         }
         return /^[a-zA-Z0-9_]{3,30}$/.test(username);
       },
+    }),
+    customSession(async ({ user, session }) => {
+      const existingUser = await getUserById(user.id);
+      if (!existingUser) {
+        console.error("User not found in database", user.id);
+        throw new Error("User not found");
+      }
+
+      const googleAIInt = existingUser.integrations.find(
+        (int) => int.type === "GOOGLE"
+      );
+
+      return {
+        user: {
+          ...user,
+          settings: {
+            useMindsDB: existingUser.useMindsDB,
+            useBYOK: existingUser.useBYO,
+            googleAIEnabled: !!googleAIInt,
+          },
+        },
+        session,
+      };
     }),
   ],
 });

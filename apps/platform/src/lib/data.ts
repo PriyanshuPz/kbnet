@@ -196,3 +196,44 @@ export async function getNodeData(nodeId: string) {
     return null;
   }
 }
+
+export async function getUserData() {
+  try {
+    const h = await headers();
+    const session = await auth.api.getSession({
+      headers: h, // you need to pass the headers object.
+    });
+
+    if (!session) throw new Error("No session found");
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        integrations: true,
+      },
+    });
+
+    if (!user) throw new Error("User not found");
+
+    return user;
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    return null;
+  }
+}
+
+export async function getUserById(userId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { integrations: true },
+    });
+
+    if (!user) throw new Error("User not found");
+
+    return user;
+  } catch (error) {
+    console.error("Error fetching user by ID:", error);
+    return null;
+  }
+}

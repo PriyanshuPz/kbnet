@@ -8,6 +8,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum IntegrationType {
+  GOOGLE
+}
+
+model Integration {
+  id      String          @id @default(uuid())
+  userId  String
+  type    IntegrationType
+  enabled Boolean         @default(true)
+
+  config               String
+  encryptionIV         String
+  encryptionAuthTag    String
+  encryptionKeyVersion Int    @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+}
+
 model User {
   id            String    @id
   name          String
@@ -24,12 +47,16 @@ model User {
 
   username         String?
   displayUsername  String?
-  level            Int         @default(1)
-  xp               Int         @default(0)
-  currentStreak    Int         @default(0)
-  longestStreak    Int         @default(0)
+  level            Int           @default(1)
+  xp               Int           @default(0)
+  currentStreak    Int           @default(0)
+  longestStreak    Int           @default(0)
   lastActivityDate DateTime? // For streak tracking
   badges           UserBadge[]
+  integrations     Integration[]
+
+  useBYO     Boolean @default(false) // Indicates if the user has opted into BYO (Bring Your Own) mode
+  useMindsDB Boolean @default(true) // Indicates if the user has opted into MindsDB mode
 
   @@unique([email])
   @@unique([username]) // Ensure usernames are unique

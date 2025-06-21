@@ -63,19 +63,19 @@ export const useSwipeGestures = ({
 
     // Check node generation state directly from current values
     if (dir === "Left" && !similarNode?.generated) {
-      toast.info(WAIT_MESSAGE, {
+      toast(WAIT_MESSAGE, {
         position: "bottom-center",
       });
       return;
     }
     if (dir === "Right" && !relatedNode?.generated) {
-      toast.info(WAIT_MESSAGE, {
+      toast(WAIT_MESSAGE, {
         position: "bottom-center",
       });
       return;
     }
     if (dir === "Up" && !deepNode?.generated) {
-      toast.info(WAIT_MESSAGE, {
+      toast(WAIT_MESSAGE, {
         position: "bottom-center",
       });
       return;

@@ -16,6 +16,7 @@ export async function middleware(req: NextRequest) {
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+
   if (isApiAuthRoute) {
     return;
   }
@@ -25,6 +26,12 @@ export async function middleware(req: NextRequest) {
       return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
     }
     return;
+  }
+
+  if (nextUrl.pathname === "/") {
+    if (isLoggedIn) {
+      return Response.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+    }
   }
 
   if (!isLoggedIn && !isPublicRoute) {

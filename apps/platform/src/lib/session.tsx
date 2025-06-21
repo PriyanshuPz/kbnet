@@ -11,7 +11,7 @@ export const sessionHelpers = {
 
   resumeMap: (id: string) => {
     const state = useGlobal.getState();
-    state.setState("loading");
+    state.setState("searching");
     state.setError(null);
     state.send(pack(MessageType.RESUME_MAP, { mapId: id }));
   },

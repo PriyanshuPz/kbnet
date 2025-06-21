@@ -8,9 +8,9 @@ export default function SiteLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <Navbar />
+      <Navbar transparent={false} />
       <main className="flex-1">{children}</main>
-      <Footer />
+      <Footer transparent={false} />
     </div>
   );
 }

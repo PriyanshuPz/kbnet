@@ -1,5 +1,4 @@
 import { MessageType, pack, unpack } from "@kbnet/shared";
-import { connectMindsDB } from "@kbnet/shared/mindsdb";
 import type { WSContext, WSMessageReceive } from "hono/ws";
 import type { Context } from "hono";
 import {
@@ -45,8 +44,6 @@ export default class WSMessageHandler {
       }
 
       const { payload, type } = unpack(evt.data);
-      // Connect to MindsDB instance
-      await connectMindsDB();
 
       switch (type) {
         case MessageType.START_SEARCH: {

@@ -117,7 +117,7 @@ export async function applyUserStats(
 }
 
 // Fetches user stats for UI
-export async function getUserStats({ userId, ws }: BasePayload) {
+export async function getUserStats({ userId }: BasePayload) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {

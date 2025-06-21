@@ -13,8 +13,6 @@ export async function connectMindsDB() {
   try {
     // @ts-ignore
     await mindsdb.default.connect(config);
-
-    console.log("Connected to MindsDB successfully");
   } catch (error) {
     console.error("Failed to connect to MindsDB:", error);
     throw error;
@@ -23,6 +21,7 @@ export async function connectMindsDB() {
 
 export async function runMindsDBQuery(query: string): Promise<SqlQueryResult> {
   try {
+    await connectMindsDB();
     // @ts-ignore
     const result = await mindsdb.default.SQL.runQuery(query);
     return result;
