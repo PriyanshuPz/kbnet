@@ -28,10 +28,16 @@ export const secondaryFonts = Delicious_Handrawn({
   variable: "--font-heading",
 });
 
+export const SELF_HOST = process.env.NEXT_PUBLIC_SELF_HOST === "true";
+
 export const SERVER_URL =
   process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:8000";
 export const WS_SERVER_URL =
   process.env.NEXT_PUBLIC_WS_SERVER_URL || "ws://localhost:8000/ws";
+
+export const DISABLE_ANONYMOUS_AUTH = SELF_HOST
+  ? true
+  : process.env.NEXT_PUBLIC_DISABLE_ANONYMOUS_AUTH === "true";
 
 export const getAnimationVariants = (swipeDirection: Direction | null) => {
   // Default variants if no direction specified

@@ -2,8 +2,12 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Brand from "./brand";
 import { cn } from "@/lib/utils";
+import { serverSession } from "@/lib/data";
 
-export function Navbar({ transparent = true }) {
+export async function Navbar({ transparent = true }) {
+  const session = await serverSession();
+  const isAuthenticated = !!session?.user;
+
   return (
     <header
       className={cn(
@@ -24,11 +28,19 @@ export function Navbar({ transparent = true }) {
           >
             About
           </Link>
-          <Link href="/pad">
-            <Button size="sm" className="gap-2">
-              Dashboard
-            </Button>
-          </Link>
+          {isAuthenticated ? (
+            <Link href="/pad">
+              <Button size="sm" className="gap-2">
+                Dashboard
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/auth">
+              <Button size="sm" className="gap-2">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </nav>
       </div>
     </header>

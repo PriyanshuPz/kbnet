@@ -43,6 +43,9 @@ model User {
   accounts      Account[]
   maps          Map[]
 
+  // For anonymous users,
+  isAnonymous Boolean?
+
   // Gamification Fields
 
   username         String?

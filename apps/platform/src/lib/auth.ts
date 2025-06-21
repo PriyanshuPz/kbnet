@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { customSession, username } from "better-auth/plugins";
 import { bearer } from "better-auth/plugins";
+import { anonymous } from "better-auth/plugins";
 import { getUserById } from "./data";
 
 const restrictedUsernames = [
@@ -62,6 +63,9 @@ export const auth = betterAuth({
   },
   plugins: [
     bearer(),
+    anonymous({
+      emailDomainName: "anonymous.kbnet",
+    }),
     username({
       usernameValidator: (username) => {
         if (restrictedUsernames.includes(username.toLowerCase())) {
