@@ -66,13 +66,23 @@ app.get(
   upgradeWebSocket(async (c) => {
     const token = c.req.query("token");
     await tokenToSession(c, token);
+    let pingInterval: NodeJS.Timeout;
 
     return {
       onOpen(evt, ws) {
         console.log("WebSocket connection opened", evt.type);
+        ws.send("Welcome to KBNet WebSocket!");
+
+        // Send ping every 30 seconds
+        pingInterval = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: "ping" }));
+          }
+        }, 30000);
       },
       onClose(evt, ws) {
         console.log("WebSocket connection closed", evt.type);
+        clearInterval(pingInterval);
         handler.cleanUpSocket(ws);
       },
       onMessage: (evt, ws) => {
