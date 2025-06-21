@@ -14,6 +14,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Link from "next/link";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 interface MarkdownTextProps {
   content: string;
@@ -22,19 +23,53 @@ interface MarkdownTextProps {
   maxLength?: number;
 }
 // Custom NodeLink component
-interface NodeLinkProps {
-  id: string;
+
+const config = {
+  node: {
+    prefix: ["nodes", "appdb_ds.nodes"],
+    url: "/nodes/",
+    text: "[🧩]", // Puzzle piece: represents a connected unit
+  },
+  map: {
+    prefix: ["maps", "appdb_ds.maps"],
+    url: "/maps/",
+    text: "[🗺️]", // Map emoji: represents navigation or overview
+  },
+  rel: {
+    prefix: ["node_relationships", "appdb_ds.node_relationships"],
+    url: "/relationships/",
+    text: "[🔗]", // Link emoji: represents connection
+  },
+  step: {
+    prefix: ["navigation_steps", "appdb_ds.navigation_steps"],
+    url: "/steps/",
+    text: "[🚶]", // Walking emoji: represents a step or progress
+  },
+};
+
+function extractItem(content: string) {
+  const match = Object.entries(config).find(([_, value]) =>
+    value.prefix.some((prefix) => content.startsWith(prefix))
+  );
+
+  if (match) {
+    const [_, itemConfig] = match;
+    return `${itemConfig.text}(${itemConfig.url}${content.split(":")[1]})`;
+  }
+
+  return content;
 }
 
-const NodeLink: React.FC<NodeLinkProps> = ({ id }) => {
-  return (
-    <span className="text-blue-600 underline cursor-pointer">Node: {id}</span>
-  );
-};
+function processText(text: string) {
+  return text.replace(/<([^>]+)>/g, (_, innerContent) => {
+    return extractItem(innerContent);
+  });
+}
+
 export function MarkdownText({ content, className }: MarkdownTextProps) {
   return (
     <ReactMarkdown components={defaultComponents} remarkPlugins={[remarkGfm]}>
-      {content}
+      {processText(content)}
     </ReactMarkdown>
   );
 }
@@ -182,30 +217,21 @@ const defaultComponents = memoizeMarkdownComponents({
   },
 
   a: ({ className, ...props }) => {
-    const node = props.children?.toString() || "";
-    const isNode = node.startsWith("nodes");
-    if (isNode) {
-      const nodeId = node.substring(6); // Extract node ID from the URL
-      return (
-        <Link
-          className="text-primary font-medium underline underline-offset-4"
-          href={`/nodes/${nodeId}`}
-        >
-          [Node]
-        </Link>
-      );
-    }
-
     return (
-      <a
-        className={cn(
-          "text-primary font-medium underline underline-offset-4",
-          className
-        )}
-        {...props}
-      >
-        {props.children}
-      </a>
+      <Tooltip>
+        <TooltipTrigger>
+          <a
+            className={cn(
+              "text-primary font-medium underline underline-offset-4",
+              className
+            )}
+            {...props}
+          >
+            {props.children}
+          </a>
+        </TooltipTrigger>
+        <TooltipContent>{props.href}</TooltipContent>
+      </Tooltip>
     );
   },
 });

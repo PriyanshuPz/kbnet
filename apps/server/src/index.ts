@@ -1,4 +1,3 @@
-import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createNodeWebSocket } from "@hono/node-ws";
@@ -6,6 +5,9 @@ import { handler } from "./handler";
 import { config } from "dotenv";
 import router from "./api";
 import { authClient, tokenToSession } from "./lib/auth-client";
+import { createServer } from "http";
+import { MessageType, pack } from "@kbnet/shared";
+import { serve } from "@hono/node-server";
 
 config();
 
@@ -28,7 +30,7 @@ app.get("/", (c) => {
   });
 });
 
-app.use("*", async (c, next) => {
+app.use("/api/*", async (c, next) => {
   if (c.req.path.startsWith("/ws")) {
     return next();
   }
@@ -52,13 +54,6 @@ app.use("*", async (c, next) => {
   }
 });
 
-app.use(
-  "/api/*",
-  cors({
-    origin: "*", // Allow all origins for API routes
-  })
-);
-
 app.route("/api", router);
 
 app.get(
@@ -69,9 +64,11 @@ app.get(
       onOpen: async (evt, ws) => {
         const token = c.req.query("token");
         try {
-          await tokenToSession(c, token);
+          const { session, user } = await tokenToSession(c, token);
+
+          c.set("user", user);
+          c.set("session", session);
         } catch (error: any) {
-          console.error("WebSocket authentication failed:", error);
           ws.send(
             JSON.stringify({
               type: "error",
@@ -83,11 +80,13 @@ app.get(
           return;
         }
         console.log("WebSocket connection opened", evt.type);
-        ws.send("Welcome to KBNet WebSocket!");
+        ws.send(
+          pack(MessageType.WELCOME, { message: "Welcome to KBNet WebSocket!" })
+        );
 
         // Send ping every 30 seconds
         pingInterval = setInterval(() => {
-          if (ws.readyState === WebSocket.OPEN) {
+          if (ws.readyState === 1) {
             ws.send(JSON.stringify({ type: "ping" }));
           }
         }, 30000);
@@ -100,12 +99,6 @@ app.get(
         handler.cleanUpSocket(ws);
       },
       onMessage: (evt, ws) => {
-        const session = c.get("session");
-        const user = c.get("user");
-        if (!session || !user) {
-          console.warn("Session or user not found on message");
-          return;
-        }
         handler.handle(c, evt, ws);
       },
       onError(evt, ws) {
@@ -118,11 +111,15 @@ app.get(
 );
 
 const PORT = parseInt(process.env.PORT || "8000");
+
+// const server = createServer(app);
+
 const server = serve(
   {
     fetch: app.fetch,
     port: PORT,
     hostname: "0.0.0.0",
+    createServer,
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);
@@ -130,3 +127,7 @@ const server = serve(
 );
 
 injectWebSocket(server);
+
+// server.listen(PORT, "0.0.0.0", () => {
+//   console.log(`Server running at http://0.0.0.0:${PORT}/`);
+// });

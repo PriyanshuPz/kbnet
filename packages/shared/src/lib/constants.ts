@@ -1,4 +1,6 @@
 export enum MessageType {
+  WELCOME = "welcome",
+
   START_SEARCH = "start_search",
   SEARCH_RESULT = "search_result",
   ERROR = "error",

@@ -103,7 +103,7 @@ router.post("/maps/trigger/summary", async (c) => {
   }
 });
 
-router.get("status", async (c) => {
+router.get("/status", async (c) => {
   try {
     const user = c.get("user");
     if (!user) {

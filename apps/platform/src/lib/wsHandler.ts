@@ -3,6 +3,7 @@ import {
   AchievementNotification,
   MessageType,
   NewMapResult,
+  pack,
   UserStats,
 } from "@kbnet/shared";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
@@ -24,6 +25,10 @@ export async function wsHandler(
     }
 
     switch (type) {
+      case MessageType.WELCOME:
+        state.send(pack(MessageType.GET_USER_STAT, {}));
+        break;
+
       case MessageType.PONG:
         console.log("Echo message received:", payload);
       case MessageType.MAP_CREATED:

@@ -38,8 +38,6 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
       state.setConnectionStatus("connected");
       state.setError(null);
       console.log("WebSocket connected");
-
-      ws.send(pack(MessageType.GET_USER_STAT, {}));
     };
     ws.onclose = () => {
       console.log("WebSocket disconnected");

@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { SERVER_URL } from "@/lib/utils";
 
 interface SummaryContentProps {
   mapId: string;
