@@ -1,0 +1,9 @@
+services:
+  kbnet_server:
+    image: p8labs/kbnet-server:latest
+    container_name: kbnet_server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env

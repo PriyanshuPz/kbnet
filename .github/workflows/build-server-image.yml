@@ -32,6 +32,9 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: p8labs/kbnet-server
+          tags: |
+            type=raw,value=latest
+            type=sha
 
       - name: Build and push Docker image
         id: push
