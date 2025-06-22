@@ -48,6 +48,7 @@ export interface DashboardData {
   stats: Stats;
   maps: Map[];
 }
+
 export async function getPadData(): Promise<DashboardData | null> {
   try {
     const h = await headers();
@@ -142,7 +143,7 @@ export async function getPadData(): Promise<DashboardData | null> {
       maps,
     };
   } catch (error) {
-    console.error("Error fetching pad data:", error);
+    console.log("Error fetching pad data:", error);
     return null;
   }
 }

@@ -33,7 +33,7 @@ export const SELF_HOST = process.env.NEXT_PUBLIC_SELF_HOST === "true";
 export const SERVER_URL =
   process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:8000";
 export const WS_SERVER_URL =
-  process.env.NEXT_PUBLIC_WS_SERVER_URL || "ws://localhost:8000/ws";
+  process.env.NEXT_PUBLIC_WS_SERVER_URL || "ws://localhost:8000";
 
 export const DISABLE_ANONYMOUS_AUTH = SELF_HOST
   ? true

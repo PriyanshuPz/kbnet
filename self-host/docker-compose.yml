@@ -1,0 +1,66 @@
+services:
+  platform:
+    container_name: kbnet_platform
+    # image: docker.io/p8labs/kbnet-platform:latest
+    image: kbnet-platform:latest
+
+    env_file:
+      - ./.env
+    ports:
+      - "3000:3000"
+    networks:
+      - kbnet_internal
+    depends_on:
+      - server
+      - database
+
+  server:
+    container_name: kbnet_server
+    # image: docker.io/p8labs/kbnet-server:latest
+    image: kbnet-server:latest
+
+    env_file:
+      - ./.env
+    ports:
+      - "8000:8000"
+    networks:
+      - kbnet_internal
+    depends_on:
+      - database
+      - mindsdb
+
+  database:
+    container_name: kbnet_database
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: mindsdb
+      POSTGRES_PASSWORD: mindsdb
+      POSTGRES_DB: mindsdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - kbnet_db_data:/var/lib/postgresql/data
+    networks:
+      - kbnet_internal
+  mindsdb:
+    container_name: kbnet_mindsdb
+    image: mindsdb/mindsdb:latest
+    ports:
+      - "47334:47334"
+      - "47335:47335"
+    volumes:
+      - kbnet_mindsdb_data:/root/mdb_storage
+    depends_on:
+      - database
+    networks:
+      - kbnet_internal
+
+networks:
+  kbnet_internal:
+    driver: bridge
+
+volumes:
+  kbnet_db_data:
+    driver: local
+  kbnet_mindsdb_data:
+    driver: local

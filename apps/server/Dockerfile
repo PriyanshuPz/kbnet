@@ -8,17 +8,15 @@ COPY . .
 RUN bunx turbo prune @kbnet/server --docker
 
 
-# Add lockfile and package.json's of isolated subworkspace
 FROM base AS installer
 WORKDIR /app
-# First install the dependencies (as they change less often)
 COPY --from=source /app/out/json/ .
 RUN bun install
 
 FROM base AS builder
 WORKDIR /app
-COPY --from=installer /app/node_modules ./node_modules
 COPY --from=source /app/out/full/ .
+COPY --from=installer /app/node_modules ./node_modules
 RUN bunx turbo run build
 
 

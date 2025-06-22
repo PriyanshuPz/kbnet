@@ -43,6 +43,7 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       await authClient.signIn.anonymous();
+      router.refresh();
       router.push("/pad");
     } catch (error) {
       console.error("Anonymous sign in error:", error);

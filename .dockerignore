@@ -10,3 +10,4 @@ node_modules/*
 cloud/*
 out/*
 .github/*
+/self-host/*
