@@ -1,21 +1,19 @@
 import type { WSContext } from "hono/ws";
 import { initiateIngestion } from "./ingestion";
-import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
-import { MessageType, MindsDBConfig, pack } from "@kbnet/shared";
-import { generateId, sanitizeSQLValue } from "../lib/util";
+import { MessageType, pack } from "@kbnet/shared";
+import { generateId } from "../lib/util";
 import {
   DEEP_NODE_PROMPT,
-  MAIN_NODE_GEN_MODEL_PROMPT,
   RELATED_NODE_PROMPT,
   SIMILAR_NODE_PROMPT,
 } from "../lib/prompts";
 import { type NavigationStep, type Node } from "@kbnet/db/types";
 import { prisma } from "@kbnet/db";
-import { google } from "../lib/ai";
-import { generateObject } from "ai";
-import { z } from "zod";
+import { generateMapNode, generateMapStartPoint } from "../lib/ai";
 import { handler } from "../handler";
 import { applyUserStats } from "./user-stats";
+import { userSettings } from "./user";
+import { getKBContext } from "../lib/minds";
 
 interface BasePayload {
   userId: string;
@@ -27,49 +25,15 @@ interface NewMapPayload extends BasePayload {
 }
 
 export async function createNewMap({ userId, data, ws }: NewMapPayload) {
-  // Ingest data in the background
-  // Uncomment this line in production to enable ingestion
-
   try {
-    const kbdata = await runMindsDBQuery(`
-      SELECT * FROM ${MindsDBConfig.KB_NAME}
-      WHERE content = ${sanitizeSQLValue(data.query)}
-      LIMIT 10;
-      `);
+    const settings = await userSettings(userId);
 
-    const system = MAIN_NODE_GEN_MODEL_PROMPT(data.query, kbdata.rows);
-
-    const { object } = await generateObject({
-      model: google("gemini-2.0-flash"),
-      system: system,
-      schema: z.object({
-        mainNode: z.object({
-          title: z
-            .string()
-            .describe(`Title or concept of the main topic: ${data.query}.`),
-          summary: z
-            .string()
-            .describe(`Detailed summary of the main node: ${data.query}.`),
-        }),
-        deepNode: z.object({
-          label: z
-            .string()
-            .describe(`One of the little deep topic of ${data.query}.`),
-          content: z.string().describe("Detailed summary of the deep topic."),
-        }),
-        relatedNode: z.object({
-          label: z.string().describe(`Question or related ${data.query}.`),
-          hint: z.string().describe("Detailed summary of the related topic."),
-        }),
-        similarNode: z.object({
-          label: z
-            .string()
-            .describe(`Similar topic to the main node: ${data.query}.`),
-          hint: z.string().describe("Detailed summary of the similar topic."),
-        }),
-      }),
-      prompt: `Create a beginner-friendly knowledge map starting point for: "${data.query}"`,
-    });
+    const object = await generateMapStartPoint(
+      userId,
+      data.query,
+      settings.useBYO,
+      settings.useMindsDB
+    );
 
     const result = await prisma.$transaction(async (tx) => {
       const summaryId = generateId("summary");
@@ -192,8 +156,6 @@ export async function createNewMap({ userId, data, ws }: NewMapPayload) {
         }
       }
 
-      console.log("New map created with ID:", newMap.id);
-
       return {
         mapId: newMap.id,
         currentNavigationStepId: firstStep.id,
@@ -209,9 +171,8 @@ export async function createNewMap({ userId, data, ws }: NewMapPayload) {
     console.log("New map created successfully:", result.currentPathBranchId);
     handler.joinSessionRoom(userId, ws, result.mapId);
 
-    await applyUserStats(userId, "START_MAP");
-
     handler.sendToSession(result.mapId, MessageType.MAP_CREATED, result);
+    await applyUserStats(userId, "START_MAP");
 
     // Start ingestion in the background
     const c = await prisma.map.findMany({
@@ -221,7 +182,9 @@ export async function createNewMap({ userId, data, ws }: NewMapPayload) {
     });
 
     if (c.length === 0) {
-      initiateIngestion(data.query);
+      if (settings.useMindsDB) {
+        initiateIngestion(data.query);
+      }
     } else {
       console.log("Map already exists for this query, skipping ingestion.");
     }
@@ -423,6 +386,7 @@ export async function navigateMap({
     }
 
     const nodes = await generateNeighborsOnNavigate(
+      userId,
       mapId,
       nextNodeId,
       currentPathNodeId,
@@ -553,116 +517,8 @@ export async function navigateBack({
 
 // helpers
 
-const LOADING_MESSAGES = {
-  DEEP: "Exploring deeper aspects of this topic...",
-  RELATED: "Finding related concepts...",
-  SIMILAR: "Discovering similar topics...",
-};
-async function createPlaceholderNode(
-  mapId: string,
-  mainNode: Node,
-  type: "DEEP" | "RELATED" | "SIMILAR"
-): Promise<Node> {
-  const nodeId = generateId("node");
-  const placeholderNode = await prisma.node.create({
-    data: {
-      id: nodeId,
-      title: LOADING_MESSAGES[type],
-      summary: "Content is being generated...",
-      generated: false,
-    },
-  });
-
-  await prisma.nodeRelationship.create({
-    data: {
-      sourceNodeId: mainNode.id,
-      targetNodeId: nodeId,
-      type,
-    },
-  });
-
-  // Start background generation
-  generateNodeContent(mapId, placeholderNode, mainNode, type).catch(
-    console.error
-  );
-
-  return placeholderNode;
-}
-
-async function generateNodeContent(
-  mapId: string,
-  placeholderNode: Node,
-  mainNode: Node,
-  type: "DEEP" | "RELATED" | "SIMILAR"
-) {
-  try {
-    const kbdata = await runMindsDBQuery(`
-      SELECT * FROM ${MindsDBConfig.KB_NAME}
-      WHERE content = ${sanitizeSQLValue(mainNode.title)}
-      LIMIT 10;
-    `);
-
-    let system = "";
-    if (type === "DEEP") {
-      system = DEEP_NODE_PROMPT(
-        mainNode.title,
-        mainNode.summary || "",
-        kbdata,
-        0
-      );
-    } else if (type === "RELATED") {
-      system = RELATED_NODE_PROMPT(
-        mainNode.title,
-        mainNode.summary || "",
-        kbdata,
-        0
-      );
-    } else if (type === "SIMILAR") {
-      system = SIMILAR_NODE_PROMPT(
-        mainNode.title,
-        mainNode.summary || "",
-        kbdata,
-        0
-      );
-    }
-
-    const { object } = await generateObject({
-      model: google("gemini-2.0-flash"),
-      system,
-      schema: z.object({
-        label: z.string().describe(`Label for the ${type} node.`),
-        content: z.string().describe(`Detailed content for the ${type} node.`),
-      }),
-      prompt: `Generate a ${type.toLowerCase()} node based on the main node "${mainNode.title}"`,
-    });
-
-    // Update the placeholder node with real content
-    const updatedNode = await prisma.node.update({
-      where: { id: placeholderNode.id },
-      data: {
-        title: object.label,
-        summary: object.content,
-        generated: true,
-      },
-    });
-
-    // Broadcast the update to all connected clients
-    handler.sendToSession(mapId, MessageType.NODE_UPDATED, {
-      node: {
-        nodeId: updatedNode.id,
-        title: updatedNode.title,
-        summary: updatedNode.summary,
-        generated: true,
-        updatedAt: updatedNode.updatedAt,
-      },
-      currentNode: mainNode,
-    });
-  } catch (error) {
-    console.error(`Error generating content for ${type} node:`, error);
-  }
-}
-
 async function generateNeighborsOnNavigate(
+  userId: string,
   mapId: string,
   mainNodeId: string,
   currentStepId: string,
@@ -705,9 +561,9 @@ async function generateNeighborsOnNavigate(
   }
   const [deepNodeResult, relatedNodeResult, similarNodeResult] =
     await Promise.all([
-      deepNode || createPlaceholderNode(mapId, mainNode, "DEEP"),
-      relatedNode || createPlaceholderNode(mapId, mainNode, "RELATED"),
-      similarNode || createPlaceholderNode(mapId, mainNode, "SIMILAR"),
+      deepNode || createPlaceholderNode(userId, mapId, mainNode, "DEEP"),
+      relatedNode || createPlaceholderNode(userId, mapId, mainNode, "RELATED"),
+      similarNode || createPlaceholderNode(userId, mapId, mainNode, "SIMILAR"),
     ]);
 
   return {
@@ -718,17 +574,55 @@ async function generateNeighborsOnNavigate(
   };
 }
 
-async function generateNode(
+const LOADING_MESSAGES = {
+  DEEP: "Exploring deeper aspects of this topic...",
+  RELATED: "Finding related concepts...",
+  SIMILAR: "Discovering similar topics...",
+};
+
+async function createPlaceholderNode(
+  userId: string,
+  mapId: string,
   mainNode: Node,
-  type: "DEEP" | "RELATED" | "SIMILAR",
-  currentStepIndex: number
+  type: "DEEP" | "RELATED" | "SIMILAR"
+): Promise<Node> {
+  const nodeId = generateId("node");
+  const placeholderNode = await prisma.node.create({
+    data: {
+      id: nodeId,
+      title: LOADING_MESSAGES[type],
+      summary: "Content is being generated...",
+      generated: false,
+    },
+  });
+
+  await prisma.nodeRelationship.create({
+    data: {
+      sourceNodeId: mainNode.id,
+      targetNodeId: nodeId,
+      type,
+    },
+  });
+
+  // Start background generation
+  generateNodeContent(userId, mapId, placeholderNode, mainNode, type).catch(
+    console.error
+  );
+
+  return placeholderNode;
+}
+
+async function generateNodeContent(
+  userId: string,
+  mapId: string,
+  placeholderNode: Node,
+  mainNode: Node,
+  type: "DEEP" | "RELATED" | "SIMILAR"
 ) {
   try {
-    const kbdata = await runMindsDBQuery(`
-      SELECT * FROM ${MindsDBConfig.KB_NAME}
-      WHERE content = ${sanitizeSQLValue(mainNode.title)}
-      LIMIT 10;
-      `);
+    const kbdata = await getKBContext(mainNode.title, true);
+
+    const settings = await userSettings(userId);
 
     let system = "";
     if (type === "DEEP") {
@@ -736,57 +630,56 @@ async function generateNode(
         mainNode.title,
         mainNode.summary || "",
         kbdata,
-        currentStepIndex + 1
+        0
       );
     } else if (type === "RELATED") {
       system = RELATED_NODE_PROMPT(
         mainNode.title,
         mainNode.summary || "",
         kbdata,
-        currentStepIndex + 1
+        0
       );
     } else if (type === "SIMILAR") {
       system = SIMILAR_NODE_PROMPT(
         mainNode.title,
         mainNode.summary || "",
         kbdata,
-        currentStepIndex + 1
+        0
       );
-    } else {
-      throw new Error(`Unsupported node type: ${type}`);
     }
 
-    const { object } = await generateObject({
-      model: google("gemini-2.0-flash"),
+    const object = await generateMapNode(
+      type,
+      userId,
       system,
-      schema: z.object({
-        label: z.string().describe(`Label for the ${type} node.`),
-        content: z.string().describe(`Detailed content for the ${type} node.`),
-      }),
-      prompt: `Generate a ${type.toLowerCase()} node based on the main node "${mainNode.title}"`,
-    });
-
-    const newNode = await prisma.node.create({
+      settings.useBYO,
+      mainNode.title
+    );
+    // Update the placeholder node with real content
+    const updatedNode = await prisma.node.update({
+      where: { id: placeholderNode.id },
       data: {
-        id: generateId("node"),
         title: object.label,
         summary: object.content,
         generated: true,
       },
     });
 
-    const newRelationship = await prisma.nodeRelationship.create({
-      data: {
-        sourceNodeId: mainNode.id,
-        targetNodeId: newNode.id,
-        type,
+    // Broadcast the update to all connected clients
+    handler.sendToSession(mapId, MessageType.NODE_UPDATED, {
+      node: {
+        nodeId: updatedNode.id,
+        title: updatedNode.title,
+        summary: updatedNode.summary,
+        generated: true,
+        updatedAt: updatedNode.updatedAt,
       },
+      currentNode: mainNode,
     });
-
-    console.log(`Generated ${type} node:`, newNode.id);
-    return newNode;
   } catch (error) {
-    console.error(`Error generating ${type} node:`, error);
-    throw new Error(`Failed to generate ${type} node`);
+    console.error(`Error generating content for ${type} node:`, error);
+    handler.sendToSession(mapId, MessageType.ERROR, {
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 }

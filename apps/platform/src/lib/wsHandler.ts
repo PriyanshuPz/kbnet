@@ -94,7 +94,7 @@ export async function wsHandler(
       case MessageType.NODE_UPDATED: {
         const { node, currentNode } = payload as any;
 
-        const { nodeId, title, summary, generated, updatedAt } = node;
+        const { nodeId, title, summary, generated } = node;
         const state = useGlobal.getState();
 
         // Update the appropriate node in the state
@@ -133,7 +133,7 @@ export async function wsHandler(
         } as any);
         // Show a subtle toast notification when content is ready
         if (generated) {
-          toast.success(`Read ${title}`, {
+          toast(`Read ${title}`, {
             duration: 500,
           });
         }

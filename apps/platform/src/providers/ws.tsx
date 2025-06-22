@@ -6,12 +6,18 @@ import { authClient } from "@/lib/auth-client";
 import { WS_SERVER_URL } from "@/lib/utils";
 import { wsHandler } from "@/lib/wsHandler";
 import { useGlobal } from "@/store/global-state";
-import { MessageType, pack } from "@kbnet/shared";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
-const paths = ["/auth", "/", "about", "/terms", "/privacy"];
-
+const PUBLIC_ROUTES = [
+  "/auth",
+  "/",
+  "/about",
+  "/terms",
+  "/privacy",
+  "/auth/logout",
+  "/settings",
+];
 export function WSProvider({ children }: { children: React.ReactNode }) {
   const state = useGlobal();
   const router = useRouter();
@@ -60,7 +66,7 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
     }
   }, [connect, state.socket]);
 
-  if (paths.includes(pathname)) {
+  if (PUBLIC_ROUTES.includes(pathname)) {
     return children;
   }
 

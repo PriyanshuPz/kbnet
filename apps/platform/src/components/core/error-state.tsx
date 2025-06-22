@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, RefreshCcw, Code, ArrowLeft } from "lucide-react";
+import { RefreshCcw, Code, ArrowLeft, UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -14,6 +14,7 @@ interface ErrorStateProps {
   error?: Error;
   onRetry?: () => void;
   onBack?: () => void;
+  onRelogin?: () => void;
 }
 
 export function ErrorState({
@@ -21,6 +22,7 @@ export function ErrorState({
   error,
   onRetry,
   onBack,
+  onRelogin,
 }: ErrorStateProps) {
   const [showDetails, setShowDetails] = useState(false);
 
@@ -53,6 +55,18 @@ export function ErrorState({
               </Button>
             )}
 
+            {onRelogin && (
+              <Button
+                variant="outline"
+                onClick={onRelogin}
+                className="flex items-center gap-1 text-xs"
+                size="sm"
+              >
+                <UserIcon size={14} />
+                Relogin
+              </Button>
+            )}
+
             {onBack && (
               <Button
                 variant="outline"
@@ -65,38 +79,6 @@ export function ErrorState({
               </Button>
             )}
           </div>
-
-          {/* Technical details collapsible */}
-          {error && (
-            <Collapsible
-              className="mt-4 pt-2 border-t border-destructive/20"
-              open={showDetails}
-              onOpenChange={setShowDetails}
-            >
-              <CollapsibleTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="p-0 h-auto gap-1 text-xs text-destructive/80 hover:text-destructive"
-                  size="sm"
-                >
-                  <Code size={12} />
-                  {showDetails
-                    ? "Hide Technical Details"
-                    : "Show Technical Details"}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2">
-                <div className="rounded bg-destructive/5 p-3 text-xs font-mono overflow-auto max-h-40">
-                  <p className="font-medium mb-1">
-                    {error.name}: {error.message}
-                  </p>
-                  <p className="opacity-80 whitespace-pre-wrap">
-                    {error.stack}
-                  </p>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          )}
         </Alert>
 
         {/* Suggestions */}
@@ -110,7 +92,7 @@ export function ErrorState({
           <ul className="list-disc mt-2 pl-5 space-y-1">
             <li>Check your network connection</li>
             <li>Refresh the page and try again</li>
-            <li>Try a different search query</li>
+            <li>Try logging in again</li>
             <li>Contact support if the problem persists</li>
           </ul>
         </motion.div>

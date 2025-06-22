@@ -48,6 +48,7 @@ export interface DashboardData {
   stats: Stats;
   maps: Map[];
 }
+
 export async function getPadData(): Promise<DashboardData | null> {
   try {
     const h = await headers();
@@ -142,7 +143,7 @@ export async function getPadData(): Promise<DashboardData | null> {
       maps,
     };
   } catch (error) {
-    console.error("Error fetching pad data:", error);
+    console.log("Error fetching pad data:", error);
     return null;
   }
 }
@@ -193,6 +194,60 @@ export async function getNodeData(nodeId: string) {
     };
   } catch (error) {
     console.error("Error fetching node data:", error);
+    return null;
+  }
+}
+
+export async function getUserData() {
+  try {
+    const h = await headers();
+    const session = await auth.api.getSession({
+      headers: h, // you need to pass the headers object.
+    });
+
+    if (!session) throw new Error("No session found");
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        integrations: true,
+      },
+    });
+
+    if (!user) throw new Error("User not found");
+
+    return user;
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    return null;
+  }
+}
+
+export async function getUserById(userId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { integrations: true },
+    });
+
+    if (!user) throw new Error("User not found");
+
+    return user;
+  } catch (error) {
+    console.error("Error fetching user by ID:", error);
+    return null;
+  }
+}
+
+export async function serverSession() {
+  try {
+    const h = await headers();
+    const session = await auth.api.getSession({
+      headers: h, // you need to pass the headers object.
+    });
+    if (!session) throw new Error("No session found");
+    return session;
+  } catch (error) {
     return null;
   }
 }

@@ -3,22 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Trophy,
-  Map,
-  Activity,
-  Star,
-  Clock,
-  ChevronRight,
-  GraduationCap,
-} from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { Trophy, Map, Star, GraduationCap, Settings } from "lucide-react";
 import { DashboardData } from "@/lib/data";
 import { StreakCard } from "./streak-card";
 import Link from "next/link";
 import CreateMapInput from "@/components/core/create-map-input";
 import Brand from "@/components/core/brand";
-import { ThemeToggle } from "@/components/core/theme-toggle";
 import MapCard from "./map-card";
 
 const cardStyle =
@@ -31,7 +21,9 @@ export function Dashboard({ user, stats, maps }: DashboardData) {
         <Link href="/">
           <Brand />
         </Link>
-        <ThemeToggle />
+        <Link href="/settings">
+          <Settings className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" />
+        </Link>
       </nav>
 
       <Card className={`p-6 my-2 ${cardStyle}`}>

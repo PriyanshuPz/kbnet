@@ -1,8 +1,15 @@
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-export function Footer() {
+export function Footer({ transparent = true }) {
   return (
-    <footer className="w-full border-t-2 border-border py-4 bg-background/80 backdrop-blur-sm">
+    <footer
+      className={cn(
+        "w-full py-4",
+        !transparent &&
+          "border-t-2 border-border bg-background/80 backdrop-blur-sm"
+      )}
+    >
       <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <p className="text-sm text-muted-foreground">

@@ -1,11 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
 export default function LogoutPage() {
+  return (
+    <Suspense>
+      <LogoutContent />
+    </Suspense>
+  );
+}
+
+function LogoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -17,7 +25,7 @@ export default function LogoutPage() {
 
         // Sign out the user
         await authClient.signOut();
-
+        router.refresh();
         // Redirect to the specified URL
         router.push(redirectTo);
       } catch (error) {
