@@ -31,6 +31,7 @@ COPY --from=builder --chown=bunuser:kbnet /app/apps/platform/public ./apps/platf
 COPY --from=builder --chown=bunuser:kbnet /app/apps/platform/.next/static ./.next/static
 
 EXPOSE 3000
+
 ENV HOSTNAME=0.0.0.0
 
-CMD ["export", "HOSTNAME=0.0.0.0","&&", "node","apps/platform/server.js" ]
+CMD ["node", "apps/platform/server.js"]
