@@ -1,5 +1,4 @@
 const PROJECT_NAME = "kbnet";
-const APPDB_DS = "appdb_ds";
 
 export const MindsDBConfig = {
   PROJECT_NAME: PROJECT_NAME,
@@ -9,12 +8,12 @@ export const MindsDBConfig = {
   SUMMARY_JOB_NAME: `${PROJECT_NAME}.summary_job`,
   PENDING_SUMMARY_VIEW_NAME: `${PROJECT_NAME}.pending_summary_view`,
 
-  APPDB_DS: APPDB_DS,
-  MAPS: `${APPDB_DS}.public.maps`,
-  NODES: `${APPDB_DS}.public.nodes`,
-  NAVIGATION_STEPS: `${APPDB_DS}.public.navigation_steps`,
-  NODE_RELATIONSHIPS: `${APPDB_DS}.public.node_relationships`,
-  MAPS_SUMMARIES: `${APPDB_DS}.public.maps_summaries`,
+  APPDB_DS: "appdb_ds",
+  MAPS: `appdb_ds.public.maps`,
+  NODES: `appdb_ds.public.nodes`,
+  NAVIGATION_STEPS: `appdb_ds.public.navigation_steps`,
+  NODE_RELATIONSHIPS: `appdb_ds.public.node_relationships`,
+  MAPS_SUMMARIES: `appdb_ds.public.maps_summaries`,
 
   HACKERNEWS_DS: "hackernews_ds",
   MEDIAWIKI_DS: "mediawiki_ds",

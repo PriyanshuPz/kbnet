@@ -11,7 +11,7 @@ class Jobs {
           map_id,
           CONCAT('Summarize the map with ID: ', map_id) AS question,
           status
-          FROM ${MindsDBConfig.MAPS_SUMMARIES}
+          FROM appdb_ds.map_summaries
           WHERE status in ('PENDING', 'IN_PROGRESS')
           ORDER BY requested_at ASC
         )

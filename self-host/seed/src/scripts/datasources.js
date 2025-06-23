@@ -1,5 +1,7 @@
 import { MindsDBConfig } from "@kbnet/shared/config";
 import { runMindsDBQuery } from "../lib/mindsdb.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const HACKERNEWS_DS = MindsDBConfig.HACKERNEWS_DS;
@@ -94,13 +96,19 @@ class MakeDatasource {
 
   async appDB() {
     try {
+      const DATABASE_URL = new URL(
+        process.env.DATABASE_URL ||
+          "postgres://mindsdb:mindsdb@kbnet_database:5432/mindsdb"
+      );
+
       const config = {
-        host: process.env.DB_HOST || "db",
-        port: process.env.DB_PORT || 5432,
-        database: process.env.DB_NAME || "mindsdb",
-        user: process.env.DB_USER || "mindsdb",
-        password: process.env.DB_PASSWORD || "mindsdb",
+        host: DATABASE_URL.hostname,
+        port: DATABASE_URL.port,
+        database: DATABASE_URL.pathname.replace("/", ""),
+        user: DATABASE_URL.username || "mindsdb",
+        password: DATABASE_URL.password || "mindsdb",
       };
+
       const appDBDatasource = await runMindsDBQuery(`
         CREATE DATABASE IF NOT EXISTS ${APPDB_DS}
           WITH ENGINE = 'postgres',

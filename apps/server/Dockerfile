@@ -28,14 +28,18 @@ RUN adduser --system --uid 1001 bunuser
 USER bunuser
 
 COPY --from=builder --chown=bunuser:kbnet /app/apps/server/dist ./
+COPY --from=builder --chown=bunuser:kbnet /app/packages/database /app/packages/database
 COPY --from=builder --chown=bunuser:kbnet /app/packages/database/generated /app/generated
 COPY --from=installer --chown=bunuser:kbnet /app/node_modules ./node_modules
 COPY --from=builder --chown=bunuser:kbnet /app/package.json ./package.json
 COPY --from=builder --chown=bunuser:kbnet /app/turbo.json ./turbo.json
 COPY --from=builder --chown=bunuser:kbnet /app/package.json ./package.json
+COPY --from=builder --chown=bunuser:kbnet /app/apps/server/entrypoint.sh ./entrypoint.sh
 
 
 EXPOSE 8000
 RUN chmod 700 ./bin
+RUN chmod +x ./entrypoint.sh
 
-CMD ["./bin"]
+
+CMD ["./entrypoint.sh"]

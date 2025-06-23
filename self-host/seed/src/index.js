@@ -8,12 +8,12 @@ import { connectMindsDB } from "./lib/mindsdb.js";
 export async function seed() {
   try {
     await connectMindsDB();
-    await jobs.createPendingSummaryView();
-    await jobs.createSummaryGenerationJob();
-    await datasources.createDatasource();
     await kb.createKB();
-    await agents.createAgent();
+    await datasources.createDatasource();
+    await jobs.createPendingSummaryView();
     await ml.setup();
+    await jobs.createSummaryGenerationJob();
+    await agents.createAgent();
     console.log("MindsDB setup completed successfully.");
   } catch (error) {
     console.log(error);

@@ -7,7 +7,7 @@ import { authClient, tokenToSession } from "./lib/auth-client";
 import { createServer } from "http";
 import { MessageType, pack } from "@kbnet/shared";
 import { serve } from "@hono/node-server";
-import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
+import { connectMindsDB, runMindsDBQuery } from "@kbnet/shared/mindsdb";
 import { prisma } from "@kbnet/db";
 
 config();

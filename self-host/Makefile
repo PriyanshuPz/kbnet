@@ -54,6 +54,10 @@ check-db:
 
 prisma-push:
 	@echo "🔄 Running Prisma DB push..."
+	export DATABASE_URL=$(grep DATABASE_URL .env | cut -d '=' -f2-)
+	@if [ -z "$$DATABASE_URL" ]; then echo "❌ DATABASE_URL is not set in .env file"; exit 1; fi
+	@echo "Using DATABASE_URL: $$DATABASE_URL"
+	@echo "Running Prisma DB push..."
 	npx prisma db push --skip-generate
 
 check-mindsdb:

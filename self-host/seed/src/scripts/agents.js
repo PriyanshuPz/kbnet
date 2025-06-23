@@ -9,10 +9,6 @@ const LLM_API_KEY = process.env.GEMINI_API_KEY;
 class Agents {
   async createAgent() {
     try {
-      await runMindsDBQuery(`
-        DROP AGENT ${MindsDBConfig.SUMMARY_AGENT_NAME};
-      `);
-
       let query = await runMindsDBQuery(`
       CREATE AGENT IF NOT EXISTS ${MindsDBConfig.SUMMARY_AGENT_NAME}
       USING
