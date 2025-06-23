@@ -1,8 +1,5 @@
 import { runMindsDBQuery } from "../lib/mindsdb.js";
-import {
-  MindsDBConfig,
-  SUMMARY_AGENT_SYSTEM_PROMPT,
-} from "@kbnet/shared/config";
+import { MindsDBConfig, SUMMARY_AGENT_SYSTEM_PROMPT } from "../lib/config.js";
 
 const LLM_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -24,10 +21,9 @@ class Agents {
         prompt_template = '${SUMMARY_AGENT_SYSTEM_PROMPT.replace(/'/g, "''")}';
     `);
 
-      console.log("Agent :", query.type);
+      console.log("Agent :", query);
     } catch (error) {
-      console.error("Error creating Agent:", error);
-      throw error;
+      console.error("Error creating Agent:", error.message);
     }
   }
 }

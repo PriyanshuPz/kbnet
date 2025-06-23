@@ -3,16 +3,10 @@
   "version": "0.0.0",
   "type": "module",
   "private": true,
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+  "scripts": {
+    "seed": "node ./src/index.js"
   },
   "dependencies": {
-    "mindsdb-js-sdk": "^2.3.2",
-    "@kbnet/shared": "*"
+    "dotenv": "^16.5.0"
   }
 }

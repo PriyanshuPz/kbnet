@@ -5,6 +5,7 @@ import { customSession, username } from "better-auth/plugins";
 import { bearer } from "better-auth/plugins";
 import { anonymous } from "better-auth/plugins";
 import { getUserById } from "./data";
+import { SELF_HOST } from "./utils";
 
 const restrictedUsernames = [
   "admin",
@@ -42,7 +43,6 @@ const restrictedUsernames = [
   "adminpanel",
 ];
 
-const ENABLE_SIGNUP = process.env.ENABLE_SIGNUP === "true";
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -58,7 +58,7 @@ export const auth = betterAuth({
         username: profile.login.replaceAll("-", "_"),
         displayName: profile.name || profile.login,
       }),
-      disableSignUp: !ENABLE_SIGNUP,
+      disableSignUp: SELF_HOST,
     },
   },
   plugins: [

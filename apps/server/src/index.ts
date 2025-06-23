@@ -7,8 +7,8 @@ import { authClient, tokenToSession } from "./lib/auth-client";
 import { createServer } from "http";
 import { MessageType, pack } from "@kbnet/shared";
 import { serve } from "@hono/node-server";
-import { connectMindsDB, runMindsDBQuery } from "@kbnet/shared/mindsdb";
 import { prisma } from "@kbnet/db";
+import { runMindsDBQuery } from "./lib/minds";
 
 config();
 
@@ -25,15 +25,14 @@ app.get("/", async (c) => {
   let isMindsDB = false;
   let isDB = false;
   try {
-    const cell = await runMindsDBQuery(`SELECT 1`);
-    console.log("MindsDB cell result:", cell.type);
-    if (cell.type == "table") {
+    const cell = await runMindsDBQuery(`SELECT 1 as ok`);
+
+    if (cell[0].ok === 1) {
       isMindsDB = true;
     } else {
-      isMindsDB = false;
+      console.error("MindsDB query did not return expected result.");
     }
   } catch (error) {
-    isMindsDB = false;
     console.error("Failed to connect to MindsDB");
   }
 

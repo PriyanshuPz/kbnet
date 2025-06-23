@@ -6,14 +6,28 @@ PRISMA_DIR = ./prisma
 SEED_DIR = ./seed
 API_URL = http://localhost:8000/
 
-.PHONY: help run check-docker check-node check-files check-api check-db check-mindsdb prisma-push seed done
+.PHONY: help run check-docker check-node check-files check-api check-db check-mindsdb seed done
 
 help:
-	@echo "Usage:"
-	@echo "  make help             Show available commands"
+	@echo "KBNet Setup Help"
+	@echo "================="
+	@echo "Available commands:"
+	@echo "  make help             Show this help information"
 	@echo "  make run              Run the full setup and validation process"
+	@echo "  make check-files      Verify required files and directories exist"
+	@echo "  make check-docker     Verify Docker is installed and running"
+	@echo "  make check-node       Verify Node.js and npm are installed"
+	@echo "  make start-docker     Start Docker containers defined in docker-compose.yml"
+	@echo "  make check-api        Verify the API is running correctly"
+	@echo "  make check-mindsdb    Check if MindsDB connection is established"
+	@echo "  make seed             Seed MindsDB with initial data"
+	@echo "  make check-api-final  Perform final API status verification"
+	@echo ""
+	@echo "Full setup process:"
+	@echo "  'make run' will execute all necessary steps in the correct order"
+	@echo "  to set up and validate your KBNet environment."
 
-run: check-files check-docker check-node start-docker check-api check-db prisma-push check-mindsdb seed check-api-final done
+run: check-files check-docker check-node start-docker check-api check-mindsdb seed check-api-final done
 
 check-files:
 	@echo "✅ Checking required files..."
@@ -43,34 +57,22 @@ start-docker:
 check-api:
 	@echo "🔍 Checking API status..."
 	@curl -s --fail $(API_URL) | jq '.' || (echo "❌ API is not responding"; exit 1)
-
-check-db:
-	@echo "🔍 Checking if database is connected..."
-	@if curl -s $(API_URL) | grep -q '"database":"connected"'; then \
-		echo "✅ Database is connected."; \
+	@if curl -s $(API_URL) | grep -q '"status":"running"'; then \
+		echo "✅ API is running and responding."; \
 	else \
-		echo "❌ Database is not connected."; exit 1; \
+		echo "❌ API is not responding as expected."; exit 1; \
 	fi
 
-prisma-push:
-	@echo "🔄 Running Prisma DB push..."
-	export DATABASE_URL=$(grep DATABASE_URL .env | cut -d '=' -f2-)
-	@if [ -z "$$DATABASE_URL" ]; then echo "❌ DATABASE_URL is not set in .env file"; exit 1; fi
-	@echo "Using DATABASE_URL: $$DATABASE_URL"
-	@echo "Running Prisma DB push..."
-	npx prisma db push --skip-generate
+
 
 check-mindsdb:
 	@echo "🔍 Checking if MindsDB is connected..."
 	@if curl -s $(API_URL) | grep -q '"mindsDB":"connected"'; then \
-		echo "✅ MindsDB is already connected."; \
+		echo "✅ MindsDB is connected."; \
 	else \
-		echo "⚙️ MindsDB is not connected. Running seed script..."; \
-		node seed/src/index.js; \
+		echo "⚙️ MindsDB is not connected."; \
 	fi
 
-seed:
-	@echo "✅ Seed process completed (if required)."
 
 check-api-final:
 	@echo "🔄 Final API status check..."
@@ -83,3 +85,19 @@ check-api-final:
 
 done:
 	@echo "🎉 Setup completed successfully! You can now access the application at http://localhost:3000"
+
+
+
+seed:
+	@echo "🌱 Seeding the MindsDB..."
+	@echo "🔑 Loading environment variables..."
+	@if [ -f .env ]; then \
+			echo "📋 Copying .env file to seed directory..."; \
+			cp .env $(SEED_DIR)/.env && \
+			cd $(SEED_DIR) && npm install && npm run seed && rm -f .env; \
+	else \
+			echo "⚠️ No .env file found, proceeding without environment variables"; \
+			cd $(SEED_DIR) && npm install && npm run seed; \
+	fi
+	@if [ $$? -ne 0 ]; then echo "❌ Seeding failed"; exit 1; fi
+	@echo "✅ MindsDB seeded successfully."

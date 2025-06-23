@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
-import { MindsDBConfig } from "@kbnet/shared/config";
 import { runMindsDBQuery } from "../lib/mindsdb.js";
 import { connectMindsDB } from "./lib/mindsdb";
+import { MindsDBConfig } from "./lib/config.js";
 
 dotenv.config();
 

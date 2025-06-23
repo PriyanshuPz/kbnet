@@ -13,7 +13,6 @@
     "@kbnet/db": "*",
     "@kbnet/shared": "*",
     "@paralleldrive/cuid2": "^2.2.2",
-    "mindsdb-js-sdk": "^2.3.2",
     "better-auth": "^1.2.9",
     "ai": "^4.3.16",
     "dotenv": "^16.5.0",

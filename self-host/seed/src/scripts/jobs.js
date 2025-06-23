@@ -1,4 +1,4 @@
-import { MindsDBConfig } from "@kbnet/shared/config";
+import { MindsDBConfig } from "../lib/config.js";
 import { runMindsDBQuery } from "../lib/mindsdb.js";
 
 class Jobs {
@@ -17,7 +17,7 @@ class Jobs {
         )
       `);
 
-      console.log("Pending Summary view created successfully:", view.type);
+      console.log("Pending Summary view created successfully:", view);
     } catch (error) {
       console.error("Error creating Pending Summary view:", error);
       throw error;
@@ -50,7 +50,7 @@ class Jobs {
         IF (SELECT COUNT(*) > 0 FROM ${MindsDBConfig.PENDING_SUMMARY_VIEW_NAME} WHERE status in ('PENDING','IN_PROGRESS'));
         `);
 
-      console.log("Summary sync job created successfully:", job.type);
+      console.log("Summary sync job created successfully:", job);
     } catch (error) {
       console.error("Error creating Summary sync job:", error);
       throw error;

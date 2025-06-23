@@ -63,7 +63,7 @@ export async function wsHandler(
         state.setState("idle");
         state.setError(null);
         playFeedback("level_up");
-        toast.info(message, {
+        toast(message, {
           style: {
             maxWidth: "400px",
             whiteSpace: "normal",

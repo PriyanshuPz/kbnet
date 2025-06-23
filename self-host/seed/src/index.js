@@ -3,11 +3,11 @@ import kb from "./scripts/kb.js";
 import agents from "./scripts/agents.js";
 import jobs from "./scripts/jobs.js";
 import ml from "./scripts/ml.js";
-import { connectMindsDB } from "./lib/mindsdb.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 export async function seed() {
   try {
-    await connectMindsDB();
     await kb.createKB();
     await datasources.createDatasource();
     await jobs.createPendingSummaryView();

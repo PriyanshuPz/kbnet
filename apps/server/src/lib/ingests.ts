@@ -1,9 +1,7 @@
-import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
 import { DatasourceType, MindsDBConfig } from "@kbnet/shared";
 import { FEED_KB_QUERY, parseArxivXML } from "./util";
-import dotenv from "dotenv";
+import { runMindsDBQuery } from "./minds";
 
-dotenv.config();
 export async function ingestArxiv(query: string) {
   const url = `http://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&max_results=10&sortBy=relevance`;
 
@@ -30,7 +28,7 @@ export async function ingestArxiv(query: string) {
     );
     try {
       const res = await runMindsDBQuery(q);
-      console.log(`Ingested paper: ${paper.title}, Result: ${res.type}`);
+      console.log(`Ingested paper: ${paper.title}`);
     } catch (error) {
       console.error(`Error ingesting paper ${paper.title}:`, error);
     }
@@ -57,7 +55,7 @@ LIMIT 10;
 
     const res = await runMindsDBQuery(q);
 
-    console.log(`Ingested Mediawiki pages: ${res.type}`);
+    console.log(`Ingested Mediawiki pages: ${res}`);
   } catch (error) {
     console.error(`Error ingesting:`, error);
   }

@@ -1,8 +1,7 @@
-import { MindsDBConfig } from "@kbnet/shared/config";
+import { connectionConfig, MindsDBConfig } from "../lib/config.js";
 import { runMindsDBQuery } from "../lib/mindsdb.js";
 
-const API_KEY = process.env.GEMINI_API_KEY;
-
+const API_KEY = connectionConfig.geminiAPIKey;
 class ML {
   async setup() {
     try {
@@ -21,7 +20,7 @@ class ML {
         USING
           api_key = "${API_KEY}";
       `);
-      console.log("ML Engine created.", query.type);
+      console.log("ML Engine created.", query);
     } catch (error) {
       console.error("Error creating ML Engine:", error);
       throw error;
@@ -39,7 +38,7 @@ class ML {
         question_column = "question"
         `);
 
-      console.log("Model created:", query.type);
+      console.log("Model created:", query);
     } catch (error) {
       console.error("Error creating model:", error);
       throw error;

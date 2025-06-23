@@ -1,8 +1,7 @@
 services:
   platform:
     container_name: kbnet_platform
-    # image: docker.io/p8labs/kbnet-platform:latest
-    image: kbnet-platform:latest
+    image: docker.io/p8labs/kbnet-platform:latest
 
     env_file:
       - ./.env
@@ -16,8 +15,7 @@ services:
 
   server:
     container_name: kbnet_server
-    # image: docker.io/p8labs/kbnet-server:latest
-    image: kbnet-server:latest
+    image: docker.io/p8labs/kbnet-server:latest
 
     env_file:
       - ./.env
@@ -42,6 +40,7 @@ services:
       - kbnet_db_data:/var/lib/postgresql/data
     networks:
       - kbnet_internal
+
   mindsdb:
     container_name: kbnet_mindsdb
     image: mindsdb/mindsdb:latest

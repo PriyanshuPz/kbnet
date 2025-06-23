@@ -9,6 +9,14 @@
 
 KBNet is an interactive learning platform that creates dynamic, AI-powered knowledge maps for users to explore topics in an engaging and intuitive way. The project uses MindsDB for AI capabilities and follows a modern web architecture.
 
+## Try KbNet
+
+- **Online Trial**: Experience KbNet at [https://kbnet.diybuilds.tech/](https://kbnet.diybuilds.tech/)
+- **Self-Host Pack**: Download the latest self-host pack from our [GitHub releases](https://github.com/PriyanshuPz/kbnet/releases) and read setup instructions in the [`self-host/README.md`](./self-host/README.md) file.
+
+- **Demo Video**: Watch KbNet in action on [YouTube](https://youtu.be/AZJZm--uAKg)
+- **Project Article**: Learn about the development and vision behind KbNet in our [detailed article](https://dev.to/priyanshuverma/mindsdb-made-it-easy-i-made-it-hard-building-an-ai-powered-knowledge-map-d0g)
+
 ## Core Features
 
 ### 1. Knowledge Map Exploration

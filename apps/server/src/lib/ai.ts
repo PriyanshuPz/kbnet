@@ -40,7 +40,7 @@ export async function generateMapStartPoint(
 
     const { object } = await generateObject({
       model: google("gemini-2.0-flash"),
-      system: MAIN_NODE_GEN_MODEL_PROMPT(query, kbdata.rows),
+      system: MAIN_NODE_GEN_MODEL_PROMPT(query, kbdata),
       schema: z.object({
         mainNode: z.object({
           title: z

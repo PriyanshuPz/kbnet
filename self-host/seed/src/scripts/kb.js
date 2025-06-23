@@ -1,7 +1,7 @@
-import { MindsDBConfig } from "@kbnet/shared/config";
+import { MindsDBConfig, connectionConfig } from "../lib/config.js";
 import { runMindsDBQuery } from "../lib/mindsdb.js";
 
-const LLM_API_KEY = process.env.GEMINI_API_KEY;
+const LLM_API_KEY = connectionConfig.geminiAPIKey;
 
 class Kb {
   async createKB() {
@@ -28,7 +28,7 @@ class Kb {
         id_column = 'id';
     `);
 
-      console.log("Knowledge Base:", query.type);
+      console.log("Knowledge Base:", query);
     } catch (error) {
       console.error("Error creating knowledge base:", error);
       throw error;

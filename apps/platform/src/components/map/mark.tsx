@@ -54,6 +54,10 @@ function extractItem(content: string) {
 
   if (match) {
     const [_, itemConfig] = match;
+    const id = content.split(":")[1];
+    if (id.length < 5) {
+      return itemConfig.text;
+    }
     return `${itemConfig.text}(${itemConfig.url}${content.split(":")[1]})`;
   }
 

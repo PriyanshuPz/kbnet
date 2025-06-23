@@ -42,7 +42,7 @@ export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
   function canGenerateSummary() {
     if (!isEnabled || SELF_HOST) return false; // Can't generate if disabled or self-hosted
     if (!summaryData) return true; // No summary data means we can generate
-    const lastGenerated = summaryData.requestedAt;
+    const lastGenerated = summaryData.completedAt;
     if (!lastGenerated) return true; // No previous generation means we can generate
     const now = new Date();
     const hoursSinceLast =

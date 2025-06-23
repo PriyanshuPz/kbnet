@@ -4,8 +4,8 @@ import { Hono } from "hono";
 import { generateMapSummary } from "../controllers/summary";
 import { authClient } from "../lib/auth-client";
 import { userSettings } from "../controllers/user";
-import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
 import { MindsDBConfig } from "@kbnet/shared";
+import { runMindsDBQuery } from "../lib/minds";
 
 const router = new Hono<{
   Variables: {
@@ -45,7 +45,7 @@ router.post("/maps/trigger/summary", async (c) => {
     }
 
     // limit it to one summary generation one time in 24 hours
-    const lastGenerated = map.latestSummary?.requestedAt;
+    const lastGenerated = map.latestSummary?.completedAt;
     if (lastGenerated) {
       const now = new Date();
       const hoursSinceLast =
@@ -127,6 +127,22 @@ router.post("/assistant", async (c) => {
       return c.json({ error: "Invalid messages format" }, 400);
     }
 
+    try {
+      const q = await runMindsDBQuery(`SELECT 1 as ok;`);
+      if (q[0].ok !== 1) {
+        return c.json(
+          { error: "Sorry, We don't have MindsDB up at the moment." },
+          403
+        );
+      }
+    } catch (error) {
+      console.error("MindsDB connection error:", error);
+      return c.json(
+        { error: "Sorry, We don't have MindsDB up at the moment." },
+        403
+      );
+    }
+
     const node = await prisma.node.findUnique({
       where: { id: currentNodeId },
       include: {
@@ -157,19 +173,14 @@ router.post("/assistant", async (c) => {
       ${messages.map((msg, index) => `Message ${index + 1} from ${msg.role}: ${msg.content[0].text}`).join("\n")}
       `;
 
-    // FROM ${MindsDBConfig.MAIN_NODE_GEN_MODEL}
     const query = await runMindsDBQuery(`
-      SELECT answer
-      FROM gen_main_node_model
-      WHERE question = '${prompt.replace(/'/g, "''")}';
-      `);
-
-    if (query.type != "table") {
-      return c.json({ error: "Failed to get response from MindsDB" }, 500);
-    }
+          SELECT answer
+          FROM ${MindsDBConfig.MAIN_NODE_GEN_MODEL}
+          WHERE question = '${prompt.replace(/'/g, "''")}';
+          `);
 
     const answer =
-      query.rows[0]?.answer ||
+      query[0]?.answer ||
       "I'm sorry, I don't have an answer for that at the moment.";
 
     return c.json({ text: answer });

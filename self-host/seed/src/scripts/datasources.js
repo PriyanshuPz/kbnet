@@ -1,44 +1,23 @@
-import { MindsDBConfig } from "@kbnet/shared/config";
+import { connectionConfig, MindsDBConfig } from "../lib/config.js";
 import { runMindsDBQuery } from "../lib/mindsdb.js";
-import dotenv from "dotenv";
-dotenv.config();
 
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-const HACKERNEWS_DS = MindsDBConfig.HACKERNEWS_DS;
 const MEDIAWIKI_DS = MindsDBConfig.MEDIAWIKI_DS;
 const WEB_DS = MindsDBConfig.WEB_DS;
-const YOUTUBE_DS = MindsDBConfig.YOUTUBE_DS;
 const APPDB_DS = MindsDBConfig.APPDB_DS;
 
 class MakeDatasource {
   async createDatasource() {
     try {
       // Create datasources
-      let _mwiki = await this.mediawikiDS();
+      await this.mediawikiDS();
       let _web = await this.webDS();
       let _appdb = await this.appDB();
       console.log("Datasources:", {
-        mediawiki: _mwiki,
         web: _web,
         appdb: _appdb,
       });
     } catch (error) {
       console.error("Error creating datasource:", error);
-      throw error;
-    }
-  }
-
-  // skip this for now
-  async hackernewsDS() {
-    try {
-      const hackernewsDatasource = await runMindsDBQuery(`
-        CREATE DATABASE IF NOT EXISTS ${HACKERNEWS_DS}
-          WITH
-          ENGINE = 'hackernews'
-        `);
-      return hackernewsDatasource.type;
-    } catch (error) {
-      console.error("Error creating Hacker News datasource:", error);
       throw error;
     }
   }
@@ -51,10 +30,11 @@ class MakeDatasource {
           WITH
           ENGINE = 'mediawiki'
         `);
-      return mediawikiDatasource.type;
+      return mediawikiDatasource;
     } catch (error) {
-      console.error("Error creating MediaWiki datasource:", error);
-      throw error;
+      console.error(
+        "Ensure the MediaWiki extension is installed and configured correctly. Go to http://localhost:47334 and this it from the settings."
+      );
     }
   }
 
@@ -66,40 +46,16 @@ class MakeDatasource {
           WITH
           ENGINE = 'web'
         `);
-      return webDatasource.type;
+      return webDatasource;
     } catch (error) {
       console.error("Error creating Web datasource:", error);
       throw error;
     }
   }
 
-  // I need video id to make this work
-  async youtubeDS() {
-    try {
-      if (!YOUTUBE_API_KEY) {
-        throw new Error("YOUTUBE_API_KEY is not set in environment variables");
-      }
-      const youtubeDatasource = await runMindsDBQuery(`
-        CREATE DATABASE IF NOT EXISTS ${YOUTUBE_DS}
-          WITH
-          ENGINE = 'youtube',
-          PARAMETERS = {
-            "youtube_api_token": "${YOUTUBE_API_KEY}"
-          };
-        `);
-      return youtubeDatasource.type;
-    } catch (error) {
-      console.error("Error creating YouTube datasource:", error);
-      throw error;
-    }
-  }
-
   async appDB() {
     try {
-      const DATABASE_URL = new URL(
-        process.env.DATABASE_URL ||
-          "postgres://mindsdb:mindsdb@kbnet_database:5432/mindsdb"
-      );
+      const DATABASE_URL = new URL(connectionConfig.databaseURL);
 
       const config = {
         host: DATABASE_URL.hostname,
@@ -120,7 +76,7 @@ class MakeDatasource {
             "password": "${config.password}"
         };
         `);
-      return appDBDatasource.type;
+      return appDBDatasource;
     } catch (error) {
       console.error("Error creating App DB datasource:", error);
       throw error;
