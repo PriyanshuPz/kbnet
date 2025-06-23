@@ -131,6 +131,16 @@ app.get(
   })
 );
 
+app.notFound((c) => {
+  return c.json(
+    {
+      error: "Not Found",
+      message: "The requested resource could not be found.",
+    },
+    404
+  );
+});
+
 const PORT = parseInt(process.env.PORT || "8000");
 
 const server = serve(

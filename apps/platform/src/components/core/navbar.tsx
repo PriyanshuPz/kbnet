@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import Brand from "./brand";
 import { cn } from "@/lib/utils";
 import { serverSession } from "@/lib/data";
+import { Settings } from "lucide-react";
 
 export async function Navbar({ transparent = true }) {
   const session = await serverSession();
@@ -28,12 +29,18 @@ export async function Navbar({ transparent = true }) {
           >
             About
           </Link>
+
           {isAuthenticated ? (
-            <Link href="/pad">
-              <Button size="sm" className="gap-2">
-                Dashboard
-              </Button>
-            </Link>
+            <>
+              <Link href="/pad">
+                <Button size="sm" className="mr-0">
+                  Dashboard
+                </Button>
+              </Link>
+              <Link href="/settings">
+                <Settings className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" />
+              </Link>
+            </>
           ) : (
             <Link href="/auth">
               <Button size="sm" className="gap-2">

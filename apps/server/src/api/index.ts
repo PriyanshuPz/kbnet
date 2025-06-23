@@ -3,6 +3,9 @@ import { type MapSummary } from "@kbnet/db/types";
 import { Hono } from "hono";
 import { generateMapSummary } from "../controllers/summary";
 import { authClient } from "../lib/auth-client";
+import { userSettings } from "../controllers/user";
+import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
+import { MindsDBConfig } from "@kbnet/shared";
 
 const router = new Hono<{
   Variables: {
@@ -103,30 +106,75 @@ router.post("/maps/trigger/summary", async (c) => {
   }
 });
 
-router.get("/status", async (c) => {
+router.post("/assistant", async (c) => {
   try {
     const user = c.get("user");
     if (!user) {
       return c.json({ error: "Unauthorized" }, 401);
     }
-    const session = c.get("session");
-    if (!session) {
-      return c.json({ error: "Unauthorized" }, 401);
+
+    const settings = await userSettings(user.id);
+
+    if (!settings.useMindsDB) {
+      return c.json(
+        { error: "MindsDB needs to be enabled for this action." },
+        403
+      );
     }
-    return c.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        image: user.image,
-      },
-      session: {
-        id: session.id,
-        expiresAt: session.expiresAt,
+
+    const { messages, currentNodeId } = await c.req.json();
+    if (!messages || !Array.isArray(messages)) {
+      return c.json({ error: "Invalid messages format" }, 400);
+    }
+
+    const node = await prisma.node.findUnique({
+      where: { id: currentNodeId },
+      include: {
+        navigationSteps: {
+          include: {
+            parentStep: {
+              include: {
+                node: true,
+              },
+            },
+          },
+        },
       },
     });
+
+    const currentNode = node || null;
+    const previousNodes =
+      node?.navigationSteps.map((step) => step.parentStep?.node)[0] || null;
+
+    const prompt = `
+      You are an AI assistant designed to help users with their knowledge base.
+      Your task is to provide helpful and accurate responses based on the provided messages and context.
+      Current Node:
+      - ${currentNode ? `ID: ${currentNode.id}, Title: ${currentNode.title}, Summary: ${currentNode.summary}` : "None"}
+      Previous Node:
+      - ${previousNodes ? `ID: ${previousNodes.id}, Title: ${previousNodes.title}, Summary: ${previousNodes.summary}` : "None"}
+      Messages:
+      ${messages.map((msg, index) => `Message ${index + 1} from ${msg.role}: ${msg.content[0].text}`).join("\n")}
+      `;
+
+    // FROM ${MindsDBConfig.MAIN_NODE_GEN_MODEL}
+    const query = await runMindsDBQuery(`
+      SELECT answer
+      FROM gen_main_node_model
+      WHERE question = '${prompt.replace(/'/g, "''")}';
+      `);
+
+    if (query.type != "table") {
+      return c.json({ error: "Failed to get response from MindsDB" }, 500);
+    }
+
+    const answer =
+      query.rows[0]?.answer ||
+      "I'm sorry, I don't have an answer for that at the moment.";
+
+    return c.json({ text: answer });
   } catch (error) {
-    console.error("Error in /status:", error);
+    console.error("Error in /assistant:", error);
     return c.json({ error: "Failed to get status" }, 500);
   }
 });

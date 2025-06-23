@@ -1,5 +1,5 @@
-import { MindsDBConfig } from "@kbnet/shared";
-import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
+import { MindsDBConfig } from "@kbnet/shared/config";
+import { runMindsDBQuery } from "../lib/mindsdb.js";
 
 const LLM_API_KEY = process.env.GEMINI_API_KEY;
 

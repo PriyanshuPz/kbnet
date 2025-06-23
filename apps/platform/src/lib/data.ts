@@ -163,7 +163,10 @@ export async function getMapSummaryData(mapId: string) {
 
     if (!summary) throw new Error("Map summary not found");
 
-    return summary;
+    return {
+      summary,
+      enabled: session.user.settings.useMindsDB,
+    };
   } catch (error) {
     console.error("Error fetching map summary data:", error);
     return null;

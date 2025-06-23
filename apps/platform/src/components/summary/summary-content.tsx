@@ -11,15 +11,19 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { SERVER_URL } from "@/lib/utils";
+import { SELF_HOST } from "@/lib/utils";
 
 interface SummaryContentProps {
   mapId: string;
-  initialData: MapSummary | null;
+  initialData: {
+    summary: MapSummary | null;
+    enabled: boolean;
+  } | null;
 }
 
 export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
-  const summaryData = initialData;
+  const summaryData = initialData?.summary;
+  const isEnabled = initialData?.enabled ?? false;
   const router = useRouter();
   const [isGenerating, setIsGenerating] = useState(false);
   const { data: sessionData } = authClient.useSession();
@@ -36,6 +40,7 @@ export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
     : 0;
 
   function canGenerateSummary() {
+    if (!isEnabled || SELF_HOST) return false; // Can't generate if disabled or self-hosted
     if (!summaryData) return true; // No summary data means we can generate
     const lastGenerated = summaryData.requestedAt;
     if (!lastGenerated) return true; // No previous generation means we can generate
@@ -44,6 +49,19 @@ export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
       (now.getTime() - new Date(lastGenerated).getTime()) / (1000 * 60 * 60);
     return hoursSinceLast >= 24; // Allow generation if 24 hours have passed
   }
+
+  const getDisabledReason = () => {
+    if (!isEnabled) {
+      return "Summary generation is disabled in your settings. You can enable it in /settings.";
+    }
+    if (SELF_HOST) {
+      return "Summary generation is not available in self-hosted instances due to MindsDB dependency limitations.";
+    }
+    if (!canGenerateSummary() && summaryData) {
+      return `Wait for ${hoursToNextGeneration} hours before generating again.`;
+    }
+    return null;
+  };
 
   const handleGenerateSummary = async () => {
     try {
@@ -96,6 +114,8 @@ export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
     }
   };
 
+  const disabledReason = getDisabledReason();
+
   const status = getStatusDisplay();
   const isInProgress = ["QUEUED", "IN_PROGRESS"].includes(
     summaryData?.status || ""
@@ -130,17 +150,60 @@ export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
             <Button
               onClick={handleGenerateSummary}
               disabled={isGenerating || isInProgress || !canGenerateSummary()}
+              title={disabledReason || ""}
             >
               {isGenerating
                 ? "Generating..."
                 : isInProgress
                   ? "In Progress"
-                  : canGenerateSummary()
-                    ? "Generate Summary"
-                    : `Wait For ${hoursToNextGeneration} hours`}
+                  : !isEnabled || SELF_HOST
+                    ? "Disabled"
+                    : canGenerateSummary()
+                      ? "Generate Summary"
+                      : `Wait ${hoursToNextGeneration}h`}
             </Button>
           </div>
         </div>
+
+        {disabledReason && (
+          <div className="mb-6 p-4 border rounded-md bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
+            <p className="text-amber-800 dark:text-amber-300 flex items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              {disabledReason}
+            </p>
+            {!isEnabled && (
+              <p className="text-sm text-amber-700 dark:text-amber-400 mt-2 ml-7">
+                You can enable summary generation in your{" "}
+                <Link
+                  href="/settings"
+                  className="underline hover:text-amber-900 dark:hover:text-amber-200"
+                >
+                  settings
+                </Link>
+                .
+              </p>
+            )}
+            {SELF_HOST && (
+              <p className="text-sm text-amber-700 dark:text-amber-400 mt-2 ml-7">
+                Due to limited budget, we cannot afford to deploy MindsDB
+                online, which powers this feature.
+              </p>
+            )}
+          </div>
+        )}
 
         {isInProgress && (
           <div className="mb-6">
@@ -170,7 +233,9 @@ export function MapSummaryContent({ mapId, initialData }: SummaryContentProps) {
         ) : (
           <div className="text-center py-12">
             <p className="text-muted-foreground">
-              No summary available. Click generate to create one.
+              {!isEnabled || SELF_HOST
+                ? "Summary generation is currently disabled."
+                : "No summary available. Click generate to create one."}
             </p>
           </div>
         )}

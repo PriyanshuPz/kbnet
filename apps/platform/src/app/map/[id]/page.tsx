@@ -1,12 +1,16 @@
 import ExplorationView from "../_components/exploration-view";
 import { BranchMinimap } from "../_components/branch-map";
+import { AssistantProvider } from "@/providers/assistant-runtime";
+import { AssistantModal } from "@/components/assistant-ui/assistant-modal";
 
 export default function ExplorePage() {
   return (
     <div className="w-full h-screen flex flex-col overflow-hidden antialiased text-foreground dark:text-foreground-dark">
-      <div className="flex items-center px-4 h-14 mt-3"></div>
-      <BranchMinimap />
-      <ExplorationView />
+      <AssistantProvider>
+        <BranchMinimap />
+        <ExplorationView />
+        <AssistantModal />
+      </AssistantProvider>
     </div>
   );
 }

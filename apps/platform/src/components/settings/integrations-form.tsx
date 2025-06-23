@@ -94,8 +94,16 @@ export function IntegrationsForm() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <FormLabel>MindsDB Integration</FormLabel>
-                    <FormDescription>
-                      Enable/disable MindsDB integration
+                    <FormDescription className="flex flex-col">
+                      <span>Enable/disable MindsDB integration.</span>
+                      <span>
+                        <span className="text-amber-600 font-medium">
+                          Note:
+                        </span>{" "}
+                        Disabling this will restrict certain advanced features
+                        and may affect background jobs that depend on your
+                        MindsDB setup.
+                      </span>
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -117,8 +125,18 @@ export function IntegrationsForm() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <FormLabel>Google AI API</FormLabel>
-                    <FormDescription>
-                      Use your own Google AI API key
+                    <FormDescription className="flex flex-col">
+                      <span>
+                        Use your own Google AI API key for node generation and
+                        other AI features.
+                      </span>
+                      <span>
+                        <span className="text-amber-600 font-medium">
+                          Note:
+                        </span>{" "}
+                        MindsDB operations will continue using the system's API
+                        key regardless of this setting.
+                      </span>
                     </FormDescription>
                   </div>
                   <FormControl>

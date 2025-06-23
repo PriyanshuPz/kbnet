@@ -191,7 +191,7 @@ export const BranchMinimap = () => {
       <Button
         variant="outline"
         size="sm"
-        className="fixed bottom-4 right-4 shadow-md z-50"
+        className="fixed bottom-4 left-4 shadow-md z-50"
         onClick={() => setIsCollapsed(false)}
       >
         <GitBranch className="h-4 w-4 mr-1" />
@@ -204,10 +204,10 @@ export const BranchMinimap = () => {
   const containerClass = cn(
     "fixed shadow-lg z-50 bg-card border rounded-lg overflow-hidden transition-all duration-200",
     isCollapsed
-      ? "bottom-4 right-4 p-0 w-auto"
+      ? "bottom-4 left-4 p-0 w-auto"
       : isMaximized
         ? "inset-4 w-auto"
-        : "bottom-4 right-4 w-[320px]"
+        : "bottom-4 left-4 w-[320px]"
   );
 
   return (
