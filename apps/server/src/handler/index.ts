@@ -109,6 +109,11 @@ export default class WSMessageHandler {
           });
           break;
         }
+        case MessageType.PING: {
+          // Handle ping messages to keep the connection alive
+          ws.send(pack(MessageType.SHOW_NOTIFICATION, { message: "pong" }));
+          break;
+        }
         default:
           console.log("WebSocket message received:", type, payload);
           break;

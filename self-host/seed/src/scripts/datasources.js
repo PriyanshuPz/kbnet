@@ -1,10 +1,9 @@
-import { MindsDBConfig } from "@kbnet/shared";
-import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
+import { MindsDBConfig } from "@kbnet/shared/config";
+import { runMindsDBQuery } from "../lib/mindsdb.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-
-type RsType = "table" | "error" | "ok";
-
 const HACKERNEWS_DS = MindsDBConfig.HACKERNEWS_DS;
 const MEDIAWIKI_DS = MindsDBConfig.MEDIAWIKI_DS;
 const WEB_DS = MindsDBConfig.WEB_DS;
@@ -12,17 +11,13 @@ const YOUTUBE_DS = MindsDBConfig.YOUTUBE_DS;
 const APPDB_DS = MindsDBConfig.APPDB_DS;
 
 class MakeDatasource {
-  async createDatasource(): Promise<void> {
+  async createDatasource() {
     try {
       // Create datasources
-      // let _yt = await this.youtubeDS();
-      // let _hn = await this.hackernewsDS();
       let _mwiki = await this.mediawikiDS();
       let _web = await this.webDS();
       let _appdb = await this.appDB();
       console.log("Datasources:", {
-        // youtube: _yt,
-        // hackernews: _hn,
         mediawiki: _mwiki,
         web: _web,
         appdb: _appdb,
@@ -33,8 +28,8 @@ class MakeDatasource {
     }
   }
 
-  // Good for now
-  async hackernewsDS(): Promise<RsType> {
+  // skip this for now
+  async hackernewsDS() {
     try {
       const hackernewsDatasource = await runMindsDBQuery(`
         CREATE DATABASE IF NOT EXISTS ${HACKERNEWS_DS}
@@ -49,7 +44,7 @@ class MakeDatasource {
   }
 
   // Good for now
-  async mediawikiDS(): Promise<RsType> {
+  async mediawikiDS() {
     try {
       const mediawikiDatasource = await runMindsDBQuery(`
         CREATE DATABASE IF NOT EXISTS ${MEDIAWIKI_DS}
@@ -64,7 +59,7 @@ class MakeDatasource {
   }
 
   // Good for now
-  async webDS(): Promise<RsType> {
+  async webDS() {
     try {
       const webDatasource = await runMindsDBQuery(`
         CREATE DATABASE IF NOT EXISTS ${WEB_DS}
@@ -79,7 +74,7 @@ class MakeDatasource {
   }
 
   // I need video id to make this work
-  async youtubeDS(): Promise<RsType> {
+  async youtubeDS() {
     try {
       if (!YOUTUBE_API_KEY) {
         throw new Error("YOUTUBE_API_KEY is not set in environment variables");
@@ -99,15 +94,21 @@ class MakeDatasource {
     }
   }
 
-  async appDB(): Promise<RsType> {
+  async appDB() {
     try {
+      const DATABASE_URL = new URL(
+        process.env.DATABASE_URL ||
+          "postgres://mindsdb:mindsdb@kbnet_database:5432/mindsdb"
+      );
+
       const config = {
-        host: process.env.DB_HOST || "db",
-        port: process.env.DB_PORT || 5432,
-        database: process.env.DB_NAME || "mindsdb",
-        user: process.env.DB_USER || "mindsdb",
-        password: process.env.DB_PASSWORD || "mindsdb",
+        host: DATABASE_URL.hostname,
+        port: DATABASE_URL.port,
+        database: DATABASE_URL.pathname.replace("/", ""),
+        user: DATABASE_URL.username || "mindsdb",
+        password: DATABASE_URL.password || "mindsdb",
       };
+
       const appDBDatasource = await runMindsDBQuery(`
         CREATE DATABASE IF NOT EXISTS ${APPDB_DS}
           WITH ENGINE = 'postgres',

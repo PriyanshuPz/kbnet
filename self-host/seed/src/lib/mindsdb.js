@@ -1,10 +1,10 @@
-import mindsdb, { type SqlQueryResult } from "mindsdb-js-sdk";
+import mindsdb from "mindsdb-js-sdk";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const config = {
-  host: process.env.MINDSDB_HOST || "http://localhost:47334",
+  host: "http://localhost:47334",
   user: process.env.MINDSDB_USER || "mindsdb",
   password: process.env.MINDSDB_PASSWORD || "mindsdb",
 };
@@ -19,7 +19,7 @@ export async function connectMindsDB() {
   }
 }
 
-export async function runMindsDBQuery(query: string): Promise<SqlQueryResult> {
+export async function runMindsDBQuery(query) {
   try {
     await connectMindsDB();
     // @ts-ignore

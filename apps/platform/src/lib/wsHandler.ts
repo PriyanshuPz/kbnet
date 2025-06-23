@@ -1,3 +1,4 @@
+import { useSoundEffect } from "@/hooks/use-sound-effects";
 import { useGlobal } from "@/store/global-state";
 import {
   AchievementNotification,
@@ -8,6 +9,7 @@ import {
 } from "@kbnet/shared";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { toast } from "sonner";
+import { playFeedback } from "./sound-effects";
 
 export async function wsHandler(
   event: MessageEvent,
@@ -18,12 +20,6 @@ export async function wsHandler(
   try {
     const data = JSON.parse(event.data);
     const { type, payload } = data;
-
-    // First set loading state for all messages except ERROR
-    if (type !== MessageType.ERROR) {
-      state.setState("loading");
-    }
-
     switch (type) {
       case MessageType.WELCOME:
         state.send(pack(MessageType.GET_USER_STAT, {}));
@@ -66,6 +62,7 @@ export async function wsHandler(
           payload as AchievementNotification;
         state.setState("idle");
         state.setError(null);
+        playFeedback("level_up");
         toast.info(message, {
           style: {
             maxWidth: "400px",
@@ -142,11 +139,13 @@ export async function wsHandler(
       }
 
       default:
+        state.setState("idle");
         console.warn(`Unknown message type: ${type}`);
     }
   } catch (error) {
     console.error("Error handling WebSocket message:", error);
     state.setError("Failed to process server message");
+    toast(error instanceof Error ? error.message : "An error occurred");
     state.setState("error");
   }
 }

@@ -1,15 +1,14 @@
-import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
-import { MindsDBConfig, SUMMARY_AGENT_SYSTEM_PROMPT } from "@kbnet/shared";
+import { runMindsDBQuery } from "../lib/mindsdb.js";
+import {
+  MindsDBConfig,
+  SUMMARY_AGENT_SYSTEM_PROMPT,
+} from "@kbnet/shared/config";
 
 const LLM_API_KEY = process.env.GEMINI_API_KEY;
 
 class Agents {
   async createAgent() {
     try {
-      await runMindsDBQuery(`
-        DROP AGENT ${MindsDBConfig.SUMMARY_AGENT_NAME};
-      `);
-
       let query = await runMindsDBQuery(`
       CREATE AGENT IF NOT EXISTS ${MindsDBConfig.SUMMARY_AGENT_NAME}
       USING

@@ -1,0 +1,56 @@
+name: Release Self Host Pack
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get tag name
+        id: get_tag
+        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create release directory structure
+        run: |
+          # Create temporary release folder
+          mkdir -p release
+
+          # Copy all files from self-host directory
+          cp -R ./self-host/* release/
+
+          # Create prisma directory if it doesn't exist
+          mkdir -p release/prisma
+
+          # Copy packages/database/prisma folder and overwrite if exists
+          cp -R ./packages/database/prisma/* release/prisma/
+
+      - name: Create ZIP archive
+        run: |
+          zip -r "kbnet_selfhost_pack_${{ steps.get_tag.outputs.TAG }}.zip" release/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: "kbnet_selfhost_pack_${{ steps.get_tag.outputs.TAG }}.zip"
+          draft: true
+          name: "KBNet Self-Host Pack ${{ steps.get_tag.outputs.TAG }}"
+          body: |
+            # KBNet Self-Host Pack ${{ steps.get_tag.outputs.TAG }}
+
+            This release contains the self-host package for KBNet.
+
+            ## Installation
+            1. Download and extract the ZIP file
+            2. Follow the setup instructions in the documentation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

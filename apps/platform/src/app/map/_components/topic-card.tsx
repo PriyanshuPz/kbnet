@@ -1,7 +1,6 @@
 import { Node } from "@kbnet/db/types";
-import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Copy, Heart, Share2, Minimize2, RefreshCw } from "lucide-react";
+import { Copy, Share2, Minimize2, RefreshCw } from "lucide-react";
 import { MarkdownText } from "@/components/map/mark";
 import { cn } from "@/lib/utils";
 import { useGlobal } from "@/store/global-state";
@@ -20,7 +19,6 @@ export const TopicCard = ({
   isExpanded,
   onExpandChange,
 }: TopicCardProps) => {
-  const [isLiked, setIsLiked] = useState(false);
   // Subscribe to setters and node states
   const router = useRouter();
   const handleCopy = () => {
@@ -103,16 +101,6 @@ export const TopicCard = ({
               className="mt-4 flex items-center justify-between border-t pt-4"
             >
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsLiked(!isLiked)}
-                  className={`p-2 rounded-lg hover:bg-muted transition-colors ${
-                    isLiked ? "text-red-500" : ""
-                  }`}
-                >
-                  <Heart
-                    className={`w-5 h-5 ${isLiked ? "fill-current" : ""}`}
-                  />
-                </button>
                 <button
                   onClick={handleCopy}
                   className="p-2 rounded-lg hover:bg-muted transition-colors"

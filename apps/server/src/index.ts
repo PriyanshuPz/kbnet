@@ -7,7 +7,7 @@ import { authClient, tokenToSession } from "./lib/auth-client";
 import { createServer } from "http";
 import { MessageType, pack } from "@kbnet/shared";
 import { serve } from "@hono/node-server";
-import { runMindsDBQuery } from "@kbnet/shared/mindsdb";
+import { connectMindsDB, runMindsDBQuery } from "@kbnet/shared/mindsdb";
 import { prisma } from "@kbnet/db";
 
 config();
@@ -130,6 +130,16 @@ app.get(
     };
   })
 );
+
+app.notFound((c) => {
+  return c.json(
+    {
+      error: "Not Found",
+      message: "The requested resource could not be found.",
+    },
+    404
+  );
+});
 
 const PORT = parseInt(process.env.PORT || "8000");
 

@@ -1,5 +1,6 @@
 services:
   db:
+    container_name: kb_db
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: mindsdb
@@ -12,11 +13,11 @@ services:
     networks:
       - kbnet
   mindsdb:
+    container_name: kb_mindsdb
     image: mindsdb/mindsdb:latest
     ports:
       - "47334:47334"
       - "47335:47335"
-      - "47337:47337"
     volumes:
       - mindsdb_data:/root/mdb_storage
     depends_on:
@@ -24,17 +25,35 @@ services:
     networks:
       - kbnet
 
-  # server:
-  #   image: kbnet-server:latest
-  #   depends_on:
-  #     - mindsdb
-  #     - db
-  #   ports:
-  #     - "8000:8000"
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - kbnet
+  platform:
+    container_name: kb_platform
+    build:
+      context: .
+      dockerfile: ./apps/platform/Dockerfile
+    depends_on:
+      - server
+      - db
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    networks:
+      - kbnet
+
+  server:
+    container_name: kb_server
+    build:
+      context: .
+      dockerfile: ./apps/server/Dockerfile
+    depends_on:
+      - mindsdb
+      - db
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - kbnet
 
 volumes:
   mindsdb_data:

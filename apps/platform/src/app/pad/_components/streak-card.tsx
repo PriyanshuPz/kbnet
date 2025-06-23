@@ -16,6 +16,7 @@ export function StreakCard({ currentStreak, longestStreak }: StreakCardProps) {
         <div className="h-12 w-12 rounded-lg bg-orange-500/10 flex items-center justify-center border-2 border-black">
           <Flame className="h-6 w-6 text-orange-500" />
         </div>
+
         <div>
           <p className="text-sm font-medium">Daily Streak</p>
           <div className="flex items-baseline gap-2">

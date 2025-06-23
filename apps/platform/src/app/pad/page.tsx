@@ -1,6 +1,7 @@
 import { getPadData } from "@/lib/data";
 import React from "react";
 import { Dashboard } from "./_components/dashboard";
+import { Footer } from "@/components/core/footer";
 
 export default async function PadPage() {
   const data = await getPadData();
@@ -19,8 +20,9 @@ export default async function PadPage() {
   }
 
   return (
-    <div className="p-6 min-h-screen bg-[#faf8f3] dark:bg-[#1a1a1a]">
+    <div className="p-6 pb-0 w-full min-h-screen bg-[#faf8f3] dark:bg-[#1a1a1a]">
       <Dashboard {...data} />
+      <Footer />
     </div>
   );
 }

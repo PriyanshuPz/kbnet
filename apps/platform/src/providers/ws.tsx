@@ -3,6 +3,7 @@
 import { ErrorState } from "@/components/core/error-state";
 import { LoadingState } from "@/components/core/loading-state";
 import { authClient } from "@/lib/auth-client";
+import { initializeSoundPools } from "@/lib/sound-effects";
 import { WS_SERVER_URL } from "@/lib/utils";
 import { wsHandler } from "@/lib/wsHandler";
 import { useGlobal } from "@/store/global-state";
@@ -59,6 +60,10 @@ export function WSProvider({ children }: { children: React.ReactNode }) {
   }
 
   React.useEffect(() => {
+    // Call this in your app initialization
+    if (typeof window !== "undefined") {
+      initializeSoundPools();
+    }
     if (!state.socket) {
       connect();
     } else if (state.socket.readyState === WebSocket.CLOSED) {
