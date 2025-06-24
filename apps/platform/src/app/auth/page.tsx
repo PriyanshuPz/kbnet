@@ -55,12 +55,14 @@ export default function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-6">
       <div className="absolute top-6 left-6">
-        <Button variant="ghost" size="sm" asChild className="paper-effect">
-          <Link href="/" className="flex items-center gap-1">
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back</span>
-          </Link>
-        </Button>
+        <Link href="/" className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" className="paper-effect">
+            <>
+              <ArrowLeft className="h-4 w-4" />
+              <span>Back</span>
+            </>
+          </Button>
+        </Link>
       </div>
 
       <Card className="w-full max-w-md paper-effect">

@@ -132,7 +132,7 @@ router.post("/assistant", async (c) => {
       if (q[0].ok !== 1) {
         return c.json(
           { error: "Sorry, We don't have MindsDB up at the moment." },
-          403
+          503
         );
       }
     } catch (error) {

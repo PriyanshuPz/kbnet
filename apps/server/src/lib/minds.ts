@@ -1,7 +1,6 @@
 import { MindsDBConfig } from "@kbnet/shared";
 import { sanitizeSQLValue } from "./util";
 import { mindsDBUrl } from "..";
-
 export async function runMindsDBQuery(query: string) {
   try {
     const res = await fetch(`${mindsDBUrl}/api/sql/query`, {
@@ -13,7 +12,7 @@ export async function runMindsDBQuery(query: string) {
     });
 
     if (!res.ok) {
-      throw new Error(`HTTP error! status: ${res.status}`);
+      throw new Error(`HTTP error! status: ${res.status || "unknown"}`);
     }
     const rawData: any = await res.json();
 
@@ -39,11 +38,9 @@ export async function runMindsDBQuery(query: string) {
 
 export async function getKBContext(query: string, enabled = true) {
   if (!enabled) {
-    return {
-      rows: [
-        { chunk_content: `Use your own knowledge base to answer: ${query}` },
-      ],
-    };
+    return [
+      { chunk_content: `Use your own knowledge base to answer: ${query}` },
+    ];
   }
 
   let kbdata;
@@ -59,10 +56,7 @@ export async function getKBContext(query: string, enabled = true) {
       error.message
     );
 
-    console.log(kbdata);
-    kbdata = {
-      rows: [],
-    };
+    kbdata = [];
   }
 
   return kbdata;
