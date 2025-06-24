@@ -50,7 +50,7 @@ check-node:
 
 start-docker:
 	@echo "🚀 Starting Docker services..."
-	docker-compose -f $(DOCKER_COMPOSE) up -d
+	docker compose -f $(DOCKER_COMPOSE) up -d
 	@echo "⌛ Waiting for API to become available..."
 	@sleep 5
 
@@ -89,15 +89,24 @@ done:
 
 
 seed:
-	@echo "🌱 Seeding the MindsDB..."
-	@echo "🔑 Loading environment variables..."
-	@if [ -f .env ]; then \
-			echo "📋 Copying .env file to seed directory..."; \
-			cp .env $(SEED_DIR)/.env && \
-			cd $(SEED_DIR) && npm install && npm run seed && rm -f .env; \
+	@echo "🔍 Checking MindsDB is online"
+	@curl -s --fail $(API_URL) | jq '.' || (echo "❌ MindsDB is not online"; exit 1)
+	@if curl -s $(API_URL) | grep -q '"mindsDB":"connected"'; then \
+			echo "✅ MindsDB is connected. proceeding with seeding."; \
+			echo "🌱 Seeding the MindsDB..."; \
+			echo "🔑 Loading environment variables..."; \
+			if [ -f .env ]; then \
+					echo "📋 Copying .env file to seed directory..."; \
+					cp .env $(SEED_DIR)/.env && \
+					cd $(SEED_DIR) && npm install && npm run seed && rm -f .env; \
+			else \
+					echo "⚠️ No .env file found, proceeding without environment variables"; \
+					cd $(SEED_DIR) && npm install && npm run seed; \
+			fi; \
+			if [ $$? -ne 0 ]; then echo "❌ Seeding failed"; exit 1; fi; \
+			echo "✅ MindsDB seeded successfully."; \
 	else \
-			echo "⚠️ No .env file found, proceeding without environment variables"; \
-			cd $(SEED_DIR) && npm install && npm run seed; \
+			echo "⚠️ MindsDB is not connected, please wait and try again after some seconds."; \
+			echo "Run 'make seed' to seed MindsDB."; \
+			exit 1; \
 	fi
-	@if [ $$? -ne 0 ]; then echo "❌ Seeding failed"; exit 1; fi
-	@echo "✅ MindsDB seeded successfully."

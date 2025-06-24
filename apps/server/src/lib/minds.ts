@@ -1,7 +1,6 @@
 import { MindsDBConfig } from "@kbnet/shared";
 import { sanitizeSQLValue } from "./util";
-
-const mindsDBUrl = process.env.MINDSDB_URL || "http://localhost:47334";
+import { mindsDBUrl } from "..";
 
 export async function runMindsDBQuery(query: string) {
   try {

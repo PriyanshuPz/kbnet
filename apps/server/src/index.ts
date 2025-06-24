@@ -12,6 +12,8 @@ import { runMindsDBQuery } from "./lib/minds";
 
 config();
 
+export const mindsDBUrl = process.env.MINDSDB_URL || "http://localhost:47334";
+
 const app = new Hono<{
   Variables: {
     user: typeof authClient.$Infer.Session.user | null;
