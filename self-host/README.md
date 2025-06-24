@@ -217,9 +217,9 @@ Docker volumes are used to persist data:
 To update to a new version:
 
 1. Download the latest Self-Host Pack
-2. Stop the current containers: `docker-compose down`
+2. Stop the current containers: `docker compose down`
 3. Replace files with the new versions
-4. Start the services again: `make run` or `docker-compose up -d`
+4. Start the services again: `make run` or `docker compose up -d`
 
 ## License and Support
 
