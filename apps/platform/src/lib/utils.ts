@@ -28,7 +28,7 @@ export const secondaryFonts = Delicious_Handrawn({
   variable: "--font-heading",
 });
 
-export const SELF_HOST = process.env.NEXT_PUBLIC_SELF_HOST === "true";
+export const SELF_HOST = process.env.NEXT_PUBLIC_SELF_HOSTED === "true";
 
 export const SERVER_URL =
   process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:8000";

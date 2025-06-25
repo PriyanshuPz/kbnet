@@ -3,6 +3,10 @@ import React from "react";
 import { EvolutionContent } from "./_components/evolution-view";
 import { Navbar } from "@/components/core/navbar";
 import { Footer } from "@/components/core/footer";
+import { serverSession } from "@/lib/data";
+import { SELF_HOST } from "@/lib/utils";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 async function fetchData() {
   try {
@@ -80,9 +84,45 @@ async function fetchData() {
 
 export default async function EvolutionPage() {
   const data = await fetchData();
-  if (!data) {
-    return <div>Error fetching evolution data</div>;
+
+  if (!SELF_HOST) {
+    return (
+      <div className="h-screen">
+        <Navbar transparent={false} />
+        <div className="flex items-center justify-center h-[80vh] p-8 text-center flex-col gap-4">
+          <p className="text-xl">
+            We currently do not support this feature in online mode.
+            <br />
+            Please use the self-hosted version of KBNET to access this feature.
+            <br />
+          </p>
+          <Link href="/pad">
+            <Button>Go to Pad</Button>
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
   }
+
+  if (!data) {
+    return (
+      <div className="h-screen">
+        <Navbar transparent={false} />
+        <div className="flex items-center justify-center h-[80vh] p-8 text-center flex-col gap-4">
+          <p className="text-xl">
+            No evaluations found. Please create a map and wait for the
+            evaluation to see results.
+          </p>
+          <Link href="/pad">
+            <Button>Go to Pad</Button>
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div>
       <Navbar transparent={false} />
