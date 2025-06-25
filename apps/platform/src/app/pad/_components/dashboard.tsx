@@ -3,7 +3,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Map, Star, GraduationCap, Settings } from "lucide-react";
+import {
+  Trophy,
+  Map,
+  Star,
+  GraduationCap,
+  Settings,
+  ChartArea,
+} from "lucide-react";
 import { DashboardData } from "@/lib/data";
 import { StreakCard } from "./streak-card";
 import Link from "next/link";
@@ -21,9 +28,14 @@ export function Dashboard({ user, stats, maps }: DashboardData) {
         <Link href="/">
           <Brand />
         </Link>
-        <Link href="/settings">
-          <Settings className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" />
-        </Link>
+        <div className="flex items-center gap-4 absolute right-0 top-1/2 transform -translate-y-1/2">
+          <Link href="/evaluation">
+            <ChartArea className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" />
+          </Link>
+          <Link href="/settings">
+            <Settings className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" />
+          </Link>
+        </div>
       </nav>
 
       <Card className={`p-6 my-2 ${cardStyle}`}>

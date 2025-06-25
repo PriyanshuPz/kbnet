@@ -60,6 +60,18 @@ export const auth = betterAuth({
       }),
       disableSignUp: SELF_HOST,
     },
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      mapProfileToUser: (profile) => ({
+        name: profile.name,
+        email: profile.email,
+        image: profile.picture,
+        username: profile.email.split("@")[0].replaceAll("-", "_"),
+        displayName: profile.name,
+      }),
+      disableSignUp: SELF_HOST,
+    },
   },
   plugins: [
     bearer(),

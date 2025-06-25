@@ -35,6 +35,21 @@ export async function createNewMap({ userId, data, ws }: NewMapPayload) {
       settings.useMindsDB
     );
 
+    // Start ingestion in the background
+    const c = await prisma.map.findFirst({
+      where: {
+        initialQuery: data.query,
+      },
+    });
+
+    if (!c) {
+      if (settings.useMindsDB) {
+        initiateIngestion(data.query);
+      }
+    } else {
+      console.log("Map already exists for this query, skipping ingestion.");
+    }
+
     const result = await prisma.$transaction(async (tx) => {
       const summaryId = generateId("summary");
       const newMap = await prisma.map.create({
@@ -173,21 +188,6 @@ export async function createNewMap({ userId, data, ws }: NewMapPayload) {
 
     handler.sendToSession(result.mapId, MessageType.MAP_CREATED, result);
     await applyUserStats(userId, "START_MAP");
-
-    // Start ingestion in the background
-    const c = await prisma.map.findMany({
-      where: {
-        initialQuery: data.query,
-      },
-    });
-
-    if (c.length === 0) {
-      if (settings.useMindsDB) {
-        initiateIngestion(data.query);
-      }
-    } else {
-      console.log("Map already exists for this query, skipping ingestion.");
-    }
   } catch (error) {
     console.error("Error creating new map:", error);
     ws.send(

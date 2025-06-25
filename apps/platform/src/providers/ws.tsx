@@ -13,6 +13,7 @@ import * as React from "react";
 const PUBLIC_ROUTES = [
   "/auth",
   "/",
+  "/evolution",
   "/about",
   "/terms",
   "/privacy",

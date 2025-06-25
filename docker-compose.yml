@@ -25,35 +25,35 @@ services:
     networks:
       - kbnet
 
-  platform:
-    container_name: kb_platform
-    build:
-      context: .
-      dockerfile: ./apps/platform/Dockerfile
-    depends_on:
-      - server
-      - db
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    networks:
-      - kbnet
+  # platform:
+  #   container_name: kb_platform
+  #   build:
+  #     context: .
+  #     dockerfile: ./apps/platform/Dockerfile
+  #   depends_on:
+  #     - server
+  #     - db
+  #   ports:
+  #     - "3000:3000"
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - kbnet
 
-  server:
-    container_name: kb_server
-    build:
-      context: .
-      dockerfile: ./apps/server/Dockerfile
-    depends_on:
-      - mindsdb
-      - db
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    networks:
-      - kbnet
+  # server:
+  #   container_name: kb_server
+  #   build:
+  #     context: .
+  #     dockerfile: ./apps/server/Dockerfile
+  #   depends_on:
+  #     - mindsdb
+  #     - db
+  #   ports:
+  #     - "8000:8000"
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - kbnet
 
 volumes:
   mindsdb_data:

@@ -1,6 +1,7 @@
 import { MindsDBConfig } from "@kbnet/shared";
 import { sanitizeSQLValue } from "./util";
 import { mindsDBUrl } from "..";
+
 export async function runMindsDBQuery(query: string) {
   try {
     const res = await fetch(`${mindsDBUrl}/api/sql/query`, {
@@ -18,6 +19,11 @@ export async function runMindsDBQuery(query: string) {
 
     if (rawData.type == "error") {
       throw new Error(`MindsDB error: ${rawData.error_message}`);
+    }
+
+    if (rawData.type !== "table" || !rawData.data || !rawData.column_names) {
+      console.warn("Unexpected MindsDB response format:", rawData);
+      return [];
     }
 
     // Transform the data to array of objects
@@ -47,7 +53,7 @@ export async function getKBContext(query: string, enabled = true) {
   try {
     kbdata = await runMindsDBQuery(`
       SELECT * FROM ${MindsDBConfig.KB_NAME}
-      WHERE content = ${sanitizeSQLValue(query)}
+      WHERE title = ${sanitizeSQLValue(query)}
       LIMIT 10;
     `);
   } catch (error: any) {

@@ -1,13 +1,10 @@
 import dotenv from "dotenv";
-import { runMindsDBQuery } from "../lib/mindsdb.js";
-import { connectMindsDB } from "./lib/mindsdb";
 import { MindsDBConfig } from "./lib/config.js";
-
+import { runMindsDBQuery } from "./lib/mindsdb.js";
 dotenv.config();
 
 async function reset() {
   try {
-    await connectMindsDB();
     await runMindsDBQuery(`
       DROP MODEL ${MindsDBConfig.MAIN_NODE_GEN_MODEL};
     `);

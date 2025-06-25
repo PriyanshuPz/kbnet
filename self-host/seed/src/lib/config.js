@@ -6,6 +6,8 @@ export const connectionConfig = {
   host: "http://localhost:47334",
   databaseURL: process.env.DATABASE_URL,
   geminiAPIKey: process.env.GEMINI_API_KEY,
+  groqAPIKey: process.env.GROQ_API_KEY,
+  useGroqForEvaluation: process.env.USE_GROQ_FOR_EVALUATION === "true",
 };
 
 const PROJECT_NAME = "kbnet";
@@ -17,6 +19,8 @@ export const MindsDBConfig = {
   SUMMARY_AGENT_NAME: `${PROJECT_NAME}.summary_agent`,
   SUMMARY_JOB_NAME: `${PROJECT_NAME}.summary_job`,
   PENDING_SUMMARY_VIEW_NAME: `${PROJECT_NAME}.pending_summary_view`,
+  NODES_TEST_DATA_JOB: `${PROJECT_NAME}.nodes_test_data_job`,
+  EVALUATION_TEST_DATA_JOB: `${PROJECT_NAME}.evaluation_test_data_job`,
 
   APPDB_DS: "appdb_ds",
   MAPS: `appdb_ds.public.maps`,
@@ -24,6 +28,8 @@ export const MindsDBConfig = {
   NAVIGATION_STEPS: `appdb_ds.public.navigation_steps`,
   NODE_RELATIONSHIPS: `appdb_ds.public.node_relationships`,
   MAPS_SUMMARIES: `appdb_ds.public.maps_summaries`,
+  NODES_TEST_DATA: "appdb_ds.public.evaluation_test_data",
+  EVOLUTION_METRICS: "appdb_ds.public.evolution_metrics",
 
   HACKERNEWS_DS: "hackernews_ds",
   MEDIAWIKI_DS: "mediawiki_ds",

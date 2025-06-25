@@ -15,7 +15,8 @@ import { ArrowLeft, GithubIcon, Loader2, UserIcon } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { DISABLE_ANONYMOUS_AUTH } from "@/lib/utils";
-
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub } from "react-icons/fa";
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -52,6 +53,20 @@ export default function AuthPage() {
     }
   };
 
+  async function handleGoogleSignIn() {
+    setIsLoading(true);
+    try {
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/pad",
+      });
+    } catch (error) {
+      console.error("Google sign in error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-6">
       <div className="absolute top-6 left-6">
@@ -83,9 +98,22 @@ export default function AuthPage() {
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
-              <GithubIcon className="h-5 w-5" />
+              <FaGithub className="h-5 w-5" />
             )}
             <span>Continue with GitHub</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full relative py-6 flex gap-3 paper-effect"
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <FcGoogle className="h-5 w-5" />
+            )}
+            <span>Continue with Google</span>
           </Button>
 
           {!DISABLE_ANONYMOUS_AUTH && (
