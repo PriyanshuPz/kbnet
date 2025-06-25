@@ -39,7 +39,7 @@ export async function generateMapStartPoint(
     const kbdata = await getKBContext(query, useMindsDB);
 
     const { object } = await generateObject({
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-1.5-flash"),
       system: MAIN_NODE_GEN_MODEL_PROMPT(query, kbdata),
       schema: z.object({
         mainNode: z.object({

@@ -205,6 +205,45 @@ model Map {
   @@map("maps")
 }
 
+model Evaluations {
+  id         String   @id @default(cuid())
+  results_id String   @unique @map("results_id") // Unique ID for the evaluation results
+  created_at DateTime @default(now())
+
+  mapIds String? @map("map_ids") // Array of Map IDs this evaluation applies to
+
+  @@map("evaluations")
+}
+
+model EvaluationsMetrics {
+  id                          Int? // Add an ID if the table doesn't have a PK (Prisma requires one)
+  avg_relevancy               Float?
+  avg_relevance_score_by_k    String? // Text in Postgres = String in Prisma
+  avg_first_relevant_position Float?
+  mean_mrr                    Float?
+  hit_at_k                    String?
+  bin_precision_at_k          String?
+  avg_entropy                 Float?
+  avg_ndcg                    Float?
+  avg_query_time              Float?
+  name                        String?
+  created_at                  DateTime?
+
+  @@map("evaluations_metrics")
+  @@ignore
+}
+
+model EvaluationTestData {
+  id        String   @id @default(cuid())
+  question  String // The question asked in the evaluation
+  answer    String // The expected answer
+  nodeId    String?  @map("node_id") // Optional: The Node ID this question relates to
+  mapId     String?  @map("map_id") // Optional: The Map ID this question relates to
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("evaluation_test_data")
+}
+
 enum SummaryStatus {
   QUEUED
   PENDING

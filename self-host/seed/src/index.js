@@ -8,11 +8,10 @@ dotenv.config();
 
 export async function seed() {
   try {
-    await kb.createKB();
     await datasources.createDatasource();
-    await jobs.createPendingSummaryView();
+    await kb.createKB();
     await ml.setup();
-    await jobs.createSummaryGenerationJob();
+    await jobs.setup();
     await agents.createAgent();
     console.log("MindsDB setup completed successfully.");
   } catch (error) {
