@@ -64,9 +64,6 @@ export default function CreateMapInput() {
     sessionHelpers.startSearch(topic);
   };
 
-  console.log("state", state);
-  console.log("isLoading", isLoading);
-
   return (
     <div className="relative">
       <form onSubmit={handleCreateMap} className="flex items-stretch gap-2">

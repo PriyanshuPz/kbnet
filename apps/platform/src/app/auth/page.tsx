@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { DISABLE_ANONYMOUS_AUTH } from "@/lib/utils";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
+import { toast } from "sonner";
 export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,10 +26,18 @@ export default function AuthPage() {
   const handleGitHubSignIn = async () => {
     setIsLoading(true);
     try {
-      await authClient.signIn.social({
+      const res = await authClient.signIn.social({
         provider: "github",
         callbackURL: "/pad",
       });
+
+      if (res.error) {
+        if (res.error.code === "PROVIDER_NOT_FOUND") {
+          toast(`Google sign in is disabled due to not configured.`);
+        }
+        console.log("sign in error:", res.error);
+        return;
+      }
     } catch (error) {
       console.error("Sign in error:", error);
     } finally {
@@ -43,7 +52,14 @@ export default function AuthPage() {
     }
     setIsLoading(true);
     try {
-      await authClient.signIn.anonymous();
+      const res = await authClient.signIn.anonymous();
+      if (res.error) {
+        if (res.error.code === "PROVIDER_NOT_FOUND") {
+          toast(`Google sign in is disabled due to not configured.`);
+        }
+        console.log("sign in error:", res.error);
+        return;
+      }
       router.refresh();
       router.push("/pad");
     } catch (error) {
@@ -56,12 +72,20 @@ export default function AuthPage() {
   async function handleGoogleSignIn() {
     setIsLoading(true);
     try {
-      await authClient.signIn.social({
+      const res = await authClient.signIn.social({
         provider: "google",
         callbackURL: "/pad",
       });
-    } catch (error) {
-      console.error("Google sign in error:", error);
+
+      if (res.error) {
+        if (res.error.code === "PROVIDER_NOT_FOUND") {
+          toast(`Google sign in is disabled due to not configured.`);
+        }
+        console.log("sign in error:", res.error);
+        return;
+      }
+    } catch (error: any) {
+      console.log("Google sign in error:", error);
     } finally {
       setIsLoading(false);
     }

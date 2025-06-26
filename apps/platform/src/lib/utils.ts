@@ -35,9 +35,7 @@ export const SERVER_URL =
 export const WS_SERVER_URL =
   process.env.NEXT_PUBLIC_WS_SERVER_URL || "ws://localhost:8000";
 
-export const DISABLE_ANONYMOUS_AUTH = SELF_HOST
-  ? true
-  : process.env.NEXT_PUBLIC_DISABLE_ANONYMOUS_AUTH === "true";
+export const DISABLE_ANONYMOUS_AUTH = !SELF_HOST;
 
 export const getAnimationVariants = (swipeDirection: Direction | null) => {
   // Default variants if no direction specified

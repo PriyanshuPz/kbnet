@@ -43,6 +43,9 @@ const restrictedUsernames = [
   "adminpanel",
 ];
 
+const ENABLE_GITHUB_AUTH = !!process.env.GITHUB_CLIENT_ID;
+const ENABLE_GOOGLE_AUTH = !!process.env.GOOGLE_CLIENT_ID;
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -58,7 +61,7 @@ export const auth = betterAuth({
         username: profile.login.replaceAll("-", "_"),
         displayName: profile.name || profile.login,
       }),
-      disableSignUp: SELF_HOST,
+      enabled: ENABLE_GITHUB_AUTH,
     },
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -70,7 +73,7 @@ export const auth = betterAuth({
         username: profile.email.split("@")[0].replaceAll("-", "_"),
         displayName: profile.name,
       }),
-      disableSignUp: SELF_HOST,
+      enabled: ENABLE_GOOGLE_AUTH,
     },
   },
   plugins: [
