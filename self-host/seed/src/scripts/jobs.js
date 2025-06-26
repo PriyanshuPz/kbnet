@@ -130,7 +130,7 @@ class Jobs {
             version = 'llm_relevancy',
             evaluate = true,
             llm = {
-                'provider': '${connectionConfig.useGroqForEvaluation ? "groq" : "google"}',
+                'provider': '${connectionConfig.useGroqForEvaluation ? "groq" : "gemini"}',
                 'api_key':'${connectionConfig.useGroqForEvaluation ? connectionConfig.groqAPIKey : connectionConfig.geminiAPIKey}',
                 'model_name':'${connectionConfig.useGroqForEvaluation ? "qwen/qwen3-32b" : MindsDBConfig.LLM_MODEL}'
             },
