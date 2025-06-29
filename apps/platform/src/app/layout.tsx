@@ -11,9 +11,33 @@ const fonts = Ubuntu({
   weight: ["400", "500", "700"],
 });
 
+const BASE_URL = "https://kbnet.p8labs.tech";
+
 export const metadata: Metadata = {
-  title: "KBNet",
-  description: "Powered by MindsDB, KBNet is a knowledge base platform.",
+  title: "KbNet",
+  description: "Powered by MindsDB, KbNet is a knowledge base platform.",
+  keywords: ["knowledge base", "kbnet", "mindsdb", "knowledge management"],
+
+  twitter: {
+    title: "KbNet",
+    description: "Powered by MindsDB, KbNet is a knowledge base platform.",
+    card: "summary_large_image",
+    creator: "@PriyanshuPz",
+    images:
+      "https://res.cloudinary.com/pz-public-assets/image/upload/v1750742752/kbnet_landing_otyohg.png",
+  },
+  openGraph: {
+    type: "website",
+    title: "KbNet",
+    description: "Powered by MindsDB, KbNet is a knowledge base platform.",
+    images:
+      "https://res.cloudinary.com/pz-public-assets/image/upload/v1750742752/kbnet_landing_otyohg.png",
+    url: BASE_URL,
+    siteName: "KbNet",
+
+    videos:
+      "https://res.cloudinary.com/pz-public-assets/video/upload/v1750742807/KbNet_Demo_lhgkfy.mp4",
+  },
 };
 
 export default function RootLayout({

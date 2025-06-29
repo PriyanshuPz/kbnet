@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Github, Youtube, Database, Brain } from "lucide-react";
 import Link from "next/link";
 
-const DEMO_VIDEO_URL = "https://youtube.com/your-demo-video";
+const DEMO_VIDEO_URL = "https://www.youtube.com/watch?v=AZJZm--uAKg";
 
 export default function AboutPage() {
   return (
